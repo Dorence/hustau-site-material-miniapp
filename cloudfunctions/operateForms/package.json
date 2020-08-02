@@ -1,0 +1,14 @@
+{
+  "name": "operateForms",
+  "version": "1.0.1",
+  "description": "Opreate specific collections in cloud database",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Dorence Deng",
+  "license": "MIT",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

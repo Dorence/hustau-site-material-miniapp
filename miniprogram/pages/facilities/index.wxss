@@ -1,0 +1,60 @@
+/* pages/facilities/index.wxss */
+@import "../../assets/weui.wxss";
+
+.page {
+  margin: 16px 0 42px 0;
+}
+
+/* userinfo */
+
+.userinfo {
+  align-items: center;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-left: none;
+  border-right: none;
+  display: flex;
+  transition: all 400ms ease-in-out 0s;
+  transform: translateX(0);
+  width: 100%;
+}
+
+.userinfo.move-cur {
+  transform: translateX(-160rpx);
+}
+
+.userinfo .userinfo-avatar {
+  background-color: white;
+  background-size: cover;
+  border-radius: 75%;
+  height: 100rpx;
+  margin: 30rpx;
+  width: 100rpx;
+}
+
+.userinfo .userinfo-nickname {
+  font-size: 40rpx;
+}
+
+.userinfo .move {
+  display: flex;
+  height: 100%;
+  position: absolute;
+  right: 0;
+  width: 160rpx;
+  transform: translateX(100%);
+}
+
+.userinfo .move>view {
+  align-items: center;
+  display: flex;
+  flex: 1;
+  justify-content: center;
+}
+
+/* weui-cell */
+
+.weui-cell__bd .cell-text {
+  display: inline-block;
+  vertical-align: middle;
+}

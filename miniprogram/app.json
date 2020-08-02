@@ -1,0 +1,47 @@
+{
+  "pages": [
+    "pages/facilities/index",
+    "pages/facilities/borrowClassroom",
+    "pages/facilities/listBorrow",
+    "pages/facilities/superAdmin/superAdmin",
+    "pages/facilities/superAdmin/userBind",
+    "pages/approval/exportApproval",
+    "pages/approval/listApproval",
+    "pages/approval/viewApproval",
+    "pages/materials/borrowThings",
+    "pages/materials/borrowThings_form",
+    "pages/materials/addThings",
+    "pages/materials/materialsIndex",
+    "pages/materials/returnThings",
+    "pages/progressCheck/printForm",
+    "pages/progressCheck/progressCheck"
+  ],
+  "window": {
+    "backgroundColor": "#f6f6f6",
+    "backgroundTextStyle": "dark",
+    "navigationBarBackgroundColor": "#f6f6f6",
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "场地借用系统"
+  },
+  "tabBar": {
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "color": "#7a7e83",
+    "selectedColor": "#3cc51f",
+    "list": [
+      {
+        "pagePath": "pages/facilities/index",
+        "iconPath": "assets/hall.png",
+        "selectedIconPath": "assets/hall-HL.png",
+        "text": "场地借用"
+      },
+      {
+        "pagePath": "pages/materials/materialsIndex",
+        "iconPath": "assets/notification.png",
+        "selectedIconPath": "assets/notification-HL.png",
+        "text": "物资借用"
+      }
+    ]
+  },
+  "sitemapLocation": "sitemap.json"
+}
