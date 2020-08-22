@@ -11,7 +11,7 @@
 
     <!-- 页面跳转列表 -->
     <view class="weui-panel">
-      <bigList col="2" nodes="{{bigItems}}" enable="{{false}}" />
+      <bigList col="2" nodes="{{bigItems}}" enable="{{true}}" />
     </view>
     
     <!-- 公告 -->
