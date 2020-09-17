@@ -22,6 +22,7 @@ Page({
       this.updateTable();
     }
   },
+  
   /** 
    * get database 
    */

@@ -57,7 +57,7 @@
         </view>
 
         <view class="weui-form-preview__item">
-          <view class="weui-form-preview__label">社联审批人</view>
+          <view class="weui-form-preview__label">社指审批人</view>
           <view class="weui-form-preview__value">{{it.check.approver}}</view>
         </view>
 
