@@ -328,13 +328,22 @@ Page({
 
   },
 
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
+  /** 
+   * 下拉刷新
+   *    * 页面相关事件处理函数--监听用户下拉动作
    */
   onPullDownRefresh: function() {
-
+    Promise.all([this.checkLogin(), this.getUserInfo()])
+      .then(() => {
+        wx.stopPullDownRefresh({
+          complete() {
+            console.log("[onPullDownRefresh] Finish refreshing.");
+          }
+        });
+        return true;
+      });
   },
-
+  
   /**
    * 页面上拉触底事件的处理函数
    */
