@@ -136,7 +136,7 @@ Page({
             console.log("Successfully add to db!");
             wx.showModal({
               title: "提交成功",
-              content: "请确保策划案发送至公邮 mishu@hustau.com, 并耐心等待审核结果",
+              content: "请确保策划案发送至公邮 bangongshi@hustau.com, 并耐心等待审核结果",
               success: res => {
                 if (res.confirm)
                   wx.navigateBack({

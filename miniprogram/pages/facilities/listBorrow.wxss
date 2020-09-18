@@ -22,7 +22,7 @@
 }
 
 .th {
-  background: #36f;
+  background:#b0e0e6;
   color: #fff;
   display: flex;
   height: 2rem;

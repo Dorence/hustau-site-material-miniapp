@@ -347,5 +347,19 @@ Page({
    */
   onShareAppMessage: function() {
 
-  }
-})
+  },
+  /** 
+   * 下拉刷新页面
+   */
+  onPullDownRefresh: function() {
+    Promise.all([this.checkLogin(), this.getUserInfo()])
+      .then(() => {
+        wx.stopPullDownRefresh({
+          complete() {
+            console.log("[onPullDownRefresh] Finish refreshing.");
+          }
+        });
+        return true;
+      });
+  },
+  })

@@ -64,8 +64,7 @@
       </navigator>
     </view>
   </view>
-
-</view>
-
 <!-- footer -->
 <template is="foot" />
+</view>
+

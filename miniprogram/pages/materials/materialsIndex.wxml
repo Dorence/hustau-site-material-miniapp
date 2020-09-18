@@ -1,3 +1,6 @@
+<!--导入脚标-->
+<import src="../common/foot.wxml" />
+
 <!--物资借用的主导航，如果是管理员则渲染管理员界面入口-->
 <view class="page">
   <view class="page__bd">
@@ -57,12 +60,13 @@
             <!-- end for -->
           </view>
         </view>
+        
+
       </view>
-    </view>
+   </view>
     <!-- end of panel-->
 
-
-
-
-  </view>
+ <!-- footer -->
+<template is="foot"/> 
+</view>
 </view>

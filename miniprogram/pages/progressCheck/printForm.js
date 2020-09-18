@@ -57,7 +57,7 @@ Page({
       "活动负责人": it.event.responser,
       "联系电话": it.event.tel,
       "审批状态": PAGE.data.examState[it.exam],
-      "社联审批人": it.check.approver,
+      "社指审批人": it.check.approver,
       "审批人意见": it.check.comment
     };
     var yCoord = 25;
