@@ -14,7 +14,8 @@
   word-break: break-all;
 }
 
-.td, .th {
+.td,
+.th {
   width: 5rem;
   justify-content: center;
   text-align: center;
@@ -22,7 +23,7 @@
 }
 
 .th {
-  background: #36f;
+  background-color: #b0e0e6;
   color: #fff;
   display: flex;
   height: 2rem;

@@ -26,7 +26,7 @@ Page({
   /**
    * 页面加载时的事件
    */
-  onLoad: function() {
+  onLoad: function () {
     wx.showModal({
       title: "注意事项",
       content: app.globalData.rule,
@@ -39,7 +39,7 @@ Page({
    * @param {object} data submit时表单的数据
    * 校验数据并生成对应的数据库对象
    */
-  toFormObject: function(data) {
+  toFormObject: function (data) {
     const p = this.data;
     if (!p.index) return {
       err: "请选择教室"
@@ -88,7 +88,7 @@ Page({
   /**
    * 在线填表页面点击报名的函数
    */
-  submit: function(e) {
+  submit: function (e) {
     const PAGE = this;
     const formsData = e.detail.value;
     // console.log("[formsData]",formsData);
@@ -103,31 +103,53 @@ Page({
       });
       return;
     }
-    forms.orderBy("formid", "desc").limit(3).get()
+
+    forms.orderBy("formid", "desc").limit(2).field({
+        formid: true,
+        exam: true,
+        submitDate: true
+      }).get()
       .then(res => {
 
         let genIDNew = (formid) => {
-          let prefix = (new Date().getFullYear() - 2000) + (1 < new Date().getMonth() < 8 ? "Spri" : "Fall")
-          let newFormNumber = "00001";
-          if (formid.slice(0, 6) == prefix)
-            newFormNumber = (formid.slice(6, 11) * 1 + 100001).toString().slice(1, 6);
-          //NOTE: "abc".slice(0,2) = "ab" not "abc" !
-          // console.log("[max formid]", newFormNumber);
-          return prefix + newFormNumber;
-        };
+          formid = formid.toString();
+          console.log("previous formid", formid);
 
-        let genIDOld = (formid) => {
-          let date = new Date();
-          let yr = date.getFullYear();
-          let newFormNumber = "00001";
-          if (formid && Number(formid.substr(0, 4)) === yr) {
-            return (Number(formid) + 1).toString();
-          } else {
-            return yr + "00001";
+          let tm = new Date();
+          let season = !(tm.getMonth() >= 1 && tm.getMonth() < 7);
+          // @note - getMonth() => 0:Jan, 1:Feb, ... , 11:Dec
+          let prefix = tm.getFullYear().toString() + (season ? "Fall" : "Spri");
+
+          let newFormNumber = 1;
+          if (formid.substring(0, 8) === prefix)
+            newFormNumber = Number(formid.substring(8)) + 1;
+          console.log("[newFormNumber]", newFormNumber);
+
+          let newID = "";
+          for (let i = 0; i < 5; i++) {
+            let m = newFormNumber % 10;
+            // JS calculate '%' and '/' as float
+            newID = m + newID;
+            newFormNumber = (newFormNumber - m) / 10;
           }
+          newID = prefix + newID;
+          console.log("[newID]", newID);
+          return newID;
         };
 
-        formObj.formid = genIDOld(res.data[0] ? res.data[0].formid : "");
+        // let genIDOld = (formid) => {
+        //   console.log("previous formid", formid);
+        //   let date = new Date();
+        //   let yr = date.getFullYear();
+        //   let newFormNumber = "00001";
+        //   if (formid && Number(formid.substr(0, 4)) === yr) {
+        //     return (Number(formid) + 1).toString();
+        //   } else {
+        //     return yr + "00001";
+        //   }
+        // };
+
+        formObj.formid = genIDNew(res.data[0] ? res.data[0].formid : "");
         console.log("[formObj]", formObj);
         // begin forms.add()
         forms.add({
@@ -136,7 +158,7 @@ Page({
             console.log("Successfully add to db!");
             wx.showModal({
               title: "提交成功",
-              content: "请确保策划案发送至公邮 mishu@hustau.com, 并耐心等待审核结果",
+              content: `请确保策划案发送至公邮${app.globalData.contactEmail}并耐心等待审核结果`,
               success: res => {
                 if (res.confirm)
                   wx.navigateBack({
@@ -153,7 +175,7 @@ Page({
   /**
    * 活动日期picker改变的函数
    */
-  bindDateChange: function(e) {
+  bindDateChange: function (e) {
     console.log("eventDate发送选择改变，携带值为", e.detail.value);
     this.setData({
       date: e.detail.value
@@ -162,7 +184,7 @@ Page({
   /**
    * 活动开始时间picker改变
    */
-  bindTimeChange1: function(e) {
+  bindTimeChange1: function (e) {
     const value = e.detail.value,
       B = this.data.timeBIndex;
     console.log("[bindTimeChange1]", value);
@@ -181,7 +203,7 @@ Page({
   /**
    * 活动结束时间picker改变
    */
-  bindTimeChange2: function(e) {
+  bindTimeChange2: function (e) {
     const value = e.detail.value,
       A = this.data.timeAIndex;
     console.log("[bindTimeChange1]", value);
@@ -203,7 +225,7 @@ Page({
   /**
    * 借用教室picker改变的函数
    */
-  bindNumberChange: function(e) {
+  bindNumberChange: function (e) {
     console.log("classroomNumber发生选择改变，携带值为", e.detail.value)
     this.setData({
       index: e.detail.value
@@ -214,7 +236,7 @@ Page({
    * 输入活动内容时的响应, 显示字数
    * @param {Object} e 传入的事件, e.detail.value为文本表单的内容
    */
-  contentInput: function(e) {
+  contentInput: function (e) {
     this.setData({
       contentLength: e.detail.value.length
     })

@@ -1,11 +1,4 @@
-// miniprogram/pages/materialsIndex/materialsIndex.js
-/*
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-借用入口被禁用！
-修改完成后注意修改！
-位于navToBorrow！
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-*/
+// pages/materials/materialsIndex.js
 const app = getApp();
 const db = wx.cloud.database();
 
@@ -56,63 +49,7 @@ Page({
     ]
   },
 
-  // 用于验证是否能跳转的一系列条件语句
-  navToBorrow: function(e) {
-    const data = e.currentTarget.dataset;
-    if (1) {
-      console.log("navTo", data.url)
-      //wx.navigateTo(data);
-      //物资清点中，暂时禁用借用入口
-      wx.showToast({
-        title: '开发中！',
-        icon: 'loading'
-      })
-    } else {
-
-    }
-  },
-
-  // navReturn : function (e) {
-  //   const data = e.currentTarget.dataset;
-  //   if (1){
-  //     console.log("navTo",data.url)
-  //     wx.navigateTo(data);
-  //   } else {
-
-  //   }
-  // },
-
-  navAdd: function(e) {
-    const data = e.currentTarget.dataset;
-    if (1) {
-      console.log("navTO", data.url)
-      wx.navigateTo(data);
-    } else {
-
-    }
-  },
-
-  navRemove: function(e) {
-    const data = e.currentTarget.dataset;
-    if (1) {
-      console.log("navTO", data.url)
-      wx.navigateTo(data);
-    } else {
-
-    }
-  },
-
-  navAdmin: function(e) {
-    const data = e.currentTarget.dataset;
-    if (1) {
-      console.log("navTO", data.url)
-      wx.navigateTo(data);
-    } else {
-
-    }
-  },
-
-  getUserInfo: function() {
+  getUserInfo() {
     const that = this;
     wx.getSetting({
       success(res) {
@@ -131,7 +68,7 @@ Page({
     });
   },
 
-  userLogin: function() {
+  userLogin: function () {
     if (app.loginState.isLogin === false) {
       wx.login({
         success: this.getUserInfo
@@ -140,7 +77,7 @@ Page({
     }
   },
 
-  checkLogin: function() {
+  checkLogin: function () {
     const that = this;
     wx.checkSession({
       success: (res) => {
@@ -156,17 +93,18 @@ Page({
       }
     });
   },
+
   /** 更新全局变量 app.loginState */
-  updateUserInfo: function(obj) {
+  updateUserInfo(obj) {
     const that = this;
-    return Promise.resolve().then(function() {
+    return Promise.resolve().then(function () {
       app.loginState = obj;
       that.setData(obj);
       return that;
     });
   },
   /** 检查用户是否是管理员 */
-  isUserAdmin: function() {
+  isUserAdmin () {
     if (app.loginState && typeof app.loginState === "object")
       return app.loginState.isLogin && app.loginState.isAdmin;
     else
@@ -174,7 +112,7 @@ Page({
   },
 
   /** 调用云函数登录并修改页面状态 */
-  callCloudLogin: function(isShowToast) {
+  callCloudLogin: function (isShowToast) {
     const that = this;
     wx.cloud.callFunction({
       name: "login",
@@ -216,7 +154,7 @@ Page({
   /** 
    * 更新符合条件的审批的数量
    */
-  updateNumber: function() {
+  updateNumber: function () {
     function updateSingle(flag, page) {
       return db.collection("formsForMaterials").where({
         exam: flag
@@ -237,7 +175,7 @@ Page({
   /**
    * 更新新增物资的审批数量
    */
-  updateNewMaterials: function() {
+  updateNewMaterials: function () {
     function updateSingle(flag, page) {
       return db.collection("addNewMaterials").where({
         exam: flag
@@ -257,7 +195,7 @@ Page({
   },
 
   /** 链接至 listApproval */
-  navToApproval: function(e) {
+  navToApproval: function (e) {
     // console.log(e);
     const data = e.currentTarget.dataset;
     // if (this.data.exam[data.idx].num && data.urlget.length > 0) {
@@ -273,7 +211,7 @@ Page({
   /**
    *红点渲染函数，用于提醒归还物资 
    */
-  showRedDot: function() {
+  showRedDot: function () {
     db.collection("formsForMaterials").where({
       _openid: app.loginState.openid,
       exam: 3
@@ -282,7 +220,7 @@ Page({
       if (res.data.length)
         wx.showTabBarRedDot({
           index: 1,
-          success: function() {
+          success: function () {
             console.log("redDOT!")
           }
         })
@@ -291,61 +229,36 @@ Page({
   },
 
   /**
-   * 生命周期函数--监听页面加载
+   * 监听页面加载
    */
-  onLoad: function(options) {
+  onLoad (options) {
     this.checkLogin();
     // 获取用户信息
     this.getUserInfo();
-
-  },
-
-  /**
-   * 生命周期函数--监听页面初次渲染完成
-   */
-  onReady: function() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面显示
-   */
-  onShow: function() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面隐藏
-   */
-  onHide: function() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面卸载
-   */
-  onUnload: function() {
-
-  },
-
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
-   */
-  onPullDownRefresh: function() {
-
-  },
-
-  /**
-   * 页面上拉触底事件的处理函数
-   */
-  onReachBottom: function() {
-
   },
 
   /**
    * 用户点击右上角分享
    */
-  onShareAppMessage: function() {
-
-  }
+  onShareAppMessage (res) {
+    return {
+      title: app.globalData.appFullName,
+      path: "/pages/materials/materialsIndex"
+    }
+  },
+  
+  /** 
+   * 监听用户下拉动作
+   */
+  onPullDownRefresh () {
+    Promise.all([this.checkLogin(), this.getUserInfo()])
+      .then(() => {
+        wx.stopPullDownRefresh({
+          complete() {
+            console.log("[onPullDownRefresh] Finish refreshing.");
+          }
+        });
+        return true;
+      });
+  },
 })

@@ -45,7 +45,7 @@ Page({
   /**
    * 加载页面
    */
-  onLoad: function() {
+  onLoad: function () {
     this.checkLogin();
     // 获取用户信息
     this.getUserInfo();
@@ -54,10 +54,11 @@ Page({
       this.updateNumber();
     }
   },
+
   /** 
    * 下拉刷新
    */
-  onPullDownRefresh: function() {
+  onPullDownRefresh: function () {
     Promise.all([this.checkLogin(), this.getUserInfo()])
       .then(() => {
         wx.stopPullDownRefresh({
@@ -68,10 +69,22 @@ Page({
         return true;
       });
   },
+
+  /**
+   * share app
+   * @param {Object} res 
+   */
+  onShareAppMessage(res) {
+    return {
+      title: app.globalData.appFullName,
+      path: "/pages/facilities/index"
+    }
+  },
+
   /** 
    * 点击登录按钮
    */
-  userLogin: function() {
+  userLogin() {
     if (app.loginState.isLogin === false) {
       wx.login({
         success: this.getUserInfo
@@ -83,7 +96,7 @@ Page({
   /** 
    * 检查是否有授权并获取 userInfo 
    */
-  getUserInfo: function() {
+  getUserInfo() {
     const that = this;
     wx.getSetting({
       success(res) {
@@ -103,7 +116,7 @@ Page({
   },
 
   /** 链接至 listApproval */
-  navToApproval: function(e) {
+  navToApproval(e) {
     // console.log(e);
     const data = e.currentTarget.dataset;
     if (this.data.exam[data.idx].num && data.urlget.length > 0) {
@@ -117,24 +130,29 @@ Page({
   /** 
    * 更新符合条件的审批的数量
    */
-  updateNumber: function() {
+  updateNumber() {
+    let expireDate = new Date();
+    expireDate.setFullYear(expireDate.getFullYear() - 1);
+
     function updateSingle(flag, page) {
       return db.collection("forms").where({
-        exam: flag
+        exam: flag,
+        submitDate: db.command.gte(expireDate)
       }).count().then(res => {
-        // console.log(flag + " : " + res.total);
         page.setData({
-          ["exam[" + flag + "].num"]: res.total
+          [`exam[${flag}].num`]: res.total
         });
       });
     }
+
     let arr = [];
     for (let i = 0; i < this.data.exam.length; i++)
       arr.push(updateSingle(i, this));
     return Promise.all(arr);
   },
+
   /** 检查用户登录状态 */
-  checkLogin: function() {
+  checkLogin: function () {
     const that = this;
     wx.checkSession({
       success(res) {
@@ -142,7 +160,7 @@ Page({
         console.log("[checkSession] Has session.");
         if (callLoginCnt++ >= 3) {
           console.warn("Call cloud function [login]:", callLoginCnt);
-          let promise1 = new Promise(function(resolve, reject) {
+          let promise1 = new Promise(function (resolve, reject) {
             setTimeout(() => {
               that.callCloudLogin(false);
               resolve("Promise done " + callLoginCnt);
@@ -161,10 +179,11 @@ Page({
       }
     });
   },
+
   /** 
    * 更新全局变量 app.loginState
    */
-  updateUserInfo: function(obj) {
+  updateUserInfo: function (obj) {
     const that = this;
     return Promise.resolve().then(() => {
       app.loginState = obj;
@@ -172,15 +191,19 @@ Page({
       return that;
     });
   },
-  /** 检查用户是否是管理员 */
-  isUserAdmin: function() {
+
+  /** 
+   * 检查用户是否是管理员
+   */
+  isUserAdmin: function () {
     if (app.loginState && typeof app.loginState === "object")
       return app.loginState.isLogin && app.loginState.isAdmin;
     else
       return false;
   },
+
   /** 调用云函数登录并修改页面状态 */
-  callCloudLogin: function(isShowToast) {
+  callCloudLogin: function (isShowToast) {
     const that = this;
     wx.cloud.callFunction({
       name: "login",
@@ -275,6 +298,7 @@ Page({
       }
     });
   },
+
   /**
    * 扫码成功后跳转函数
    */
