@@ -54,7 +54,7 @@
 				</view>
 				<view class="weui-cell__ft weui-cell__ft_in-access"></view>
 			</navigator>
-
+      
 			<!-- super admin -->
 			<navigator wx-if="{{isSuper}}" class="weui-cell weui-cell_access" hover-class="weui-cell_active" url="superAdmin/superAdmin">
 				<view class="weui-cell__bd">
