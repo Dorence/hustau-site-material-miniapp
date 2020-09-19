@@ -9,10 +9,10 @@ Page({
     showIndex: 0,
     text: app.globalData.rule
   },
-  onLoad: function() {
+  onLoad() {
     this.updateTable();
   },
-  bindDateChange: function(e) {
+  bindDateChange(e) {
     console.log("[bindDateChange]", e.detail);
     if (e.detail.value !== this.data.date) {
       this.setData({
@@ -22,11 +22,11 @@ Page({
       this.updateTable();
     }
   },
-  
+
   /** 
    * get database 
    */
-  updateTable: function() {
+  updateTable() {
     const that = this;
     return wx.cloud.callFunction({
       name: "operateForms",
@@ -37,7 +37,8 @@ Page({
           exam: 3,
           date: this.data.date
         },
-        operate: "read"      }
+        operate: "read"
+      }
     }).then(res => {
       console.log("[updateTable]res", res);
       let x = res.result.data;
@@ -74,30 +75,4 @@ Page({
     }).catch(console.error);
   }
 
-  /*function() {
-    const that = this;
-    db.collection("forms").where({
-      exam: 3,
-      eventDate: this.data.date
-    }).get().then(res => {
-      let arr = [];
-      for (let i = 0; i < res.data.length; ++i) {
-        console.log("活动", i, ":", res.data[i]);
-        arr.push({
-          association: res.data[i].event.association,
-          room: res.data[i].classroomNumber,
-          time: res.data[i].eventTime1 + "\t~ " + res.data[i].eventTime2,
-          responser: res.data[i].event.responser,
-          tel: res.data[i].event.tel
-        });
-      }
-      arr.sort((x, y) => {
-        if (x.room === y.room) return x.time > y.time;
-        else return x.room > y.room;
-      })
-      that.setData({
-        listData: arr
-      });
-    });
-  }*/
 })

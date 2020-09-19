@@ -1,6 +1,6 @@
 {
   "enablePullDownRefresh": true,
-  "navigationBarTitleText":"物资借用系统",
+  "navigationBarTitleText": "物资借用系统",
   "usingComponents": {
     "rulePanel": "../common/rulePanel",
     "bigList": "../common/bigList"

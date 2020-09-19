@@ -7,12 +7,13 @@ var account = new Array();
 
 const db = wx.cloud.database();
 const app = getApp();
-var today = app._toDateStr(new Date(),true);
+var today = app._toDateStr(new Date(), true);
 
 Page({
   data: {
-    validStartingDate: app._toDateStr(new Date(),true),
-    validEndingDate: app._toDateStr(new Date().setDate(new Date().getDate()+14), true), //14 days after today
+    validStartingDate: app._toDateStr(new Date(), true),
+    validEndingDate: app._toDateStr(new Date(new Date().setDate(new Date().getDate() + 14)), true),
+    validEndingDate2: app._toDateStr(new Date(new Date().setDate(new Date().getDate() + 28)), true),
     date1: today, //借用时间
     date2: today,
     itemname: [],
@@ -23,7 +24,7 @@ Page({
     const PAGE = this
     this.setData(options)
     account[0] = options.itemcount;
-    console.log('borrowThings form: PAGE.data',PAGE.data)
+    console.log(app._toDateStr(new Date(new Date().setDate(new Date().getDate() + 14)), true))
   },
   bindDateChange1: function (e) {
     this.setData({
@@ -129,6 +130,16 @@ Page({
       });
       return;
     }
+    //若 归还日期 大于 借用日期+14
+    if (contents["eventTime2"] > contents["eventTime1"] + 14) {
+      wx.showModal({
+        title: "信息不完整或有错误",
+        content: "请重新选择日期",
+        showCancel: false,
+        confirmText: "确定"
+      });
+      return;
+    }
     //若 借用用途 为空：
     if (contents["description"].length === 0) {
       wx.showModal({
@@ -139,37 +150,61 @@ Page({
       });
       return;
     }
-    
-    let formObj = {        
-      association: contents["association"],
-    class: contents["class"],
-    description: contents["description"],
-    eventTime1: contents["eventTime1"],
-    eventTime2: contents["eventTime2"],
-    itemName: contents["itemName"],
-    itemId: contents.itemId,
-    name: contents["name"],
-    phoneNumber: contents["phoneNumber"],
-    quantity: contents["quantity"],
-    studentId: contents["studentId"],
-    submitDate: new Date(),
-    exam: 0 //exam status
-  }
 
-//提交申请表单
+    let formObj = {
+      association: contents["association"],
+      class: contents["class"],
+      description: contents["description"],
+      eventTime1: contents["eventTime1"],
+      eventTime2: contents["eventTime2"],
+      itemName: contents["itemName"],
+      itemId: contents.itemId,
+      name: contents["name"],
+      phoneNumber: contents["phoneNumber"],
+      quantity: contents["quantity"],
+      studentId: contents["studentId"],
+      submitDate: new Date(),
+      exam: 0 //exam status
+    }
+
+    //提交申请表单
     const forms = db.collection("formsForMaterials")
-    forms.orderBy("formid", "desc").limit(3).get()
+    forms.orderBy("formid", "desc").limit(2).field({
+      formid: true,
+      exam: true,
+      submitDate: true
+    }).get()
       .then(res => {
         // console.log('res',res.data);
-        let prefix = (new Date().getFullYear() - 2000) + (1 < new Date().getMonth() < 8 ? "Spri" : "Fall")
-        let newFormNumber = "00001";
-        if (res.data[0] && res.data[0].formid.slice(0,6) == prefix ) 
-        newFormNumber = (res.data[0].formid.slice(6,11) * 1 + 100001).toString().slice(1, 6); 
-        //NOTE: "abc".slice(0,2) = "ab" not "abc" !
-        // console.log("[max formid]", newFormNumber);
-        formObj.formid = prefix + newFormNumber;
+        let genIDNew = (formid) => {
+          formid = formid.toString();
+          console.log("previous formid", formid);
+
+          let tm = new Date();
+          let season = !(tm.getMonth() >= 1 && tm.getMonth() < 7);
+          // @note - getMonth() => 0:Jan, 1:Feb, ... , 11:Dec
+          let prefix = tm.getFullYear().toString() + (season ? "Fall" : "Spri");
+
+          let newFormNumber = 1;
+          if (formid.substring(0, 8) === prefix)
+            newFormNumber = Number(formid.substring(8)) + 1;
+          console.log("[newFormNumber]", newFormNumber);
+
+          let newID = "";
+          for (let i = 0; i < 5; i++) {
+            let m = newFormNumber % 10;
+            // JS calculate '%' and '/' as float
+            newID = m + newID;
+            newFormNumber = (newFormNumber - m) / 10;
+          }
+          newID = prefix + newID;
+          console.log("[newID]", newID);
+          return newID;
+        };
+
+        formObj.formid = genIDNew(res.data[0] ? res.data[0].formid : "");
         console.log("[formObj]", formObj);
-       
+
         // begin forms.add()
         forms.add({
           data: formObj

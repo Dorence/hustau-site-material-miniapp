@@ -11,7 +11,7 @@ Page({
   onLoad: function(options) {
     const PAGE = this;
     // console.log("options:" + options.type +' - ' + options.id);
-    db.collection("forms").where({
+    db.collection("formsForMaterials").where({
       _id: options.id
     }).get({
       success(e) {
@@ -22,15 +22,14 @@ Page({
       },
       fail: console.error
     });
-
   },
 
 
   createNewImg: function(PAGE) {
     var it = PAGE.data.progressList[0];
     // console.log('item:',it);
-    let ctx = wx.createCanvasContext('formVerify');
-    ctx.setFillStyle('white');
+    let ctx = wx.createCanvasContext('formVerify1');
+    ctx.setFillStyle('white')
     ctx.fillRect(0, 0, PAGE.data.WIDTH, PAGE.data.HEIGHT);
     // ctx.draw();
     // ctx.setStrokeStyle('black')
@@ -47,24 +46,19 @@ Page({
     ctx.setTextAlign('start');
     // ctx.fillText("textAlign=start",30,20);
     let contentForPrint = {
-      "协会名称": it.event.association,
-      "活动名称": it.event.name,
-      "参与人数": it.event.attendNumber,
-      "活动日期": it.eventDate,
-      "活动时间": it.eventTime1 + " 至 " + it.eventTime2,
-      "借用教室编号": it.classroomNumber,
-      "活动内容": it.event.content,
-      "活动负责人": it.event.responser,
-      "联系电话": it.event.tel,
+      "协会名称": it.association,
+      "物资名称": it.itemName,
+      "借用日期": it.eventTime1,
+      "归还时间": it.eventTime2,
+      "借用物资编号": it.itemId,
+      "借用负责人": it.name,
+      "联系电话": it.phoneNumber,
       "审批状态": PAGE.data.examState[it.exam],
-      "社指审批人": it.check.approver,
-      "审批人意见": it.check.comment || ""
+      "社指审批人": it.check.approver
     };
-    console.log("[draw]", contentForPrint);
     var yCoord = 25;
 
     for (var title in contentForPrint) {
-      console.log("> title", title);
       ctx.fillText(title, 25, yCoord);
       var textWidth = ctx.measureText(contentForPrint[title]).width;
       var maxLength = 200;
@@ -72,7 +66,6 @@ Page({
       var lastYCoord = yCoord;
       if (textWidth <= maxLength) {
         ctx.fillText(contentForPrint[title], 155, yCoord);
-
       } else if (textWidth < 600) {
         var count = 0;
 
@@ -115,7 +108,7 @@ Page({
 
   savePic: function() {
     wx.canvasToTempFilePath({
-      canvasId: 'formVerify',
+      canvasId: 'formVerify1',
       success: function(res) {
         // console.log(res.tempFilePath)
         wx.saveImageToPhotosAlbum({
