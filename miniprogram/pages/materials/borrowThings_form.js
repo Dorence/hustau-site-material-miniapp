@@ -169,16 +169,40 @@ Page({
 
     //提交申请表单
     const forms = db.collection("formsForMaterials")
-    forms.orderBy("formid", "desc").limit(3).get()
+    forms.orderBy("formid", "desc").limit(2).field({
+      formid: true,
+      exam: true,
+      submitDate: true
+    }).get()
       .then(res => {
         // console.log('res',res.data);
-        let prefix = (new Date().getFullYear() - 2000) + (1 < new Date().getMonth() < 8 ? "Spri" : "Fall")
-        let newFormNumber = "00001";
-        if (res.data[0] && res.data[0].formid.slice(0, 6) == prefix)
-          newFormNumber = (res.data[0].formid.slice(6, 11) * 1 + 100001).toString().slice(1, 6);
-        //NOTE: "abc".slice(0,2) = "ab" not "abc" !
-        // console.log("[max formid]", newFormNumber);
-        formObj.formid = prefix + newFormNumber;
+        let genIDNew = (formid) => {
+          formid = formid.toString();
+          console.log("previous formid", formid);
+
+          let tm = new Date();
+          let season = !(tm.getMonth() >= 1 && tm.getMonth() < 7);
+          // @note - getMonth() => 0:Jan, 1:Feb, ... , 11:Dec
+          let prefix = tm.getFullYear().toString() + (season ? "Fall" : "Spri");
+
+          let newFormNumber = 1;
+          if (formid.substring(0, 8) === prefix)
+            newFormNumber = Number(formid.substring(8)) + 1;
+          console.log("[newFormNumber]", newFormNumber);
+
+          let newID = "";
+          for (let i = 0; i < 5; i++) {
+            let m = newFormNumber % 10;
+            // JS calculate '%' and '/' as float
+            newID = m + newID;
+            newFormNumber = (newFormNumber - m) / 10;
+          }
+          newID = prefix + newID;
+          console.log("[newID]", newID);
+          return newID;
+        };
+
+        formObj.formid = genIDNew(res.data[0] ? res.data[0].formid : "");
         console.log("[formObj]", formObj);
 
         // begin forms.add()
