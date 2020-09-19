@@ -19,7 +19,6 @@ App({
     status: 0,
     appFullName: AppFullName,
     contactEmail: ContactEmail
-
   },
   globalForm: {},
   onLaunch() {

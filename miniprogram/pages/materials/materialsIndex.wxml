@@ -19,7 +19,7 @@
 
 		<!-- 公告 -->
 		<rulePanel />
-    
+
 		<view wx:if="{{isLogin && isAdmin}}" class="weui-panel">
 			<view class="weui-panel__hd">借用审批</view>
 			<view class="weui-panel__bd">
