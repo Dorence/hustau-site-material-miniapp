@@ -30,7 +30,7 @@ Page({
     var it = PAGE.data.progressList[0];
     // console.log('item:',it);
     let ctx = wx.createCanvasContext('formVerify');
-    ctx.setFillStyle('white')
+    ctx.setFillStyle('white');
     ctx.fillRect(0, 0, PAGE.data.WIDTH, PAGE.data.HEIGHT);
     // ctx.draw();
     // ctx.setStrokeStyle('black')
@@ -58,11 +58,13 @@ Page({
       "联系电话": it.event.tel,
       "审批状态": PAGE.data.examState[it.exam],
       "社指审批人": it.check.approver,
-      "审批人意见": it.check.comment
+      "审批人意见": it.check.comment || ""
     };
+    console.log("[draw]", contentForPrint);
     var yCoord = 25;
 
     for (var title in contentForPrint) {
+      console.log("> title", title);
       ctx.fillText(title, 25, yCoord);
       var textWidth = ctx.measureText(contentForPrint[title]).width;
       var maxLength = 200;
