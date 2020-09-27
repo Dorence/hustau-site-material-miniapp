@@ -98,12 +98,7 @@
     <view wx:else class="weui-article">
       <view class="weui-article__h1">暂无申请</view>
       <view class="weui-article__section">
-        <view wx:if="{{type=='materials'}}">
-          <view class="weui-article__p">您可以去查询是否有剩余物资，再根据借用流程借用物资。 </view>
-        </view>
-        <view wx:elif="{{type=='facilities'}}">
-          <view class="weui-article__p">您可以去查询是否有空闲教室，再根据借用流程借用教室。 </view>
-        </view>
+        <view class="weui-article__p">您可以去查询是否有空闲教室，再根据借用流程借用教室。 </view>
       </view>
     </view>
   </view>

@@ -14,6 +14,7 @@
     "pages/materials/materialsIndex",
     "pages/materials/returnThings",
     "pages/progressCheck/printForm",
+    "pages/progressCheck/printForm_materials",
     "pages/progressCheck/progressCheck"
   ],
   "window": {
@@ -21,15 +22,14 @@
     "backgroundTextStyle": "dark",
     "navigationBarBackgroundColor": "#f6f6f6",
     "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "场地借用系统"
+    "navigationBarTitleText": "HUST社指36号楼场地及物资借用"
   },
   "tabBar": {
     "backgroundColor": "#ffffff",
     "borderStyle": "black",
     "color": "#7a7e83",
     "selectedColor": "#3cc51f",
-    "list": [
-      {
+    "list": [{
         "pagePath": "pages/facilities/index",
         "iconPath": "assets/hall.png",
         "selectedIconPath": "assets/hall-HL.png",

@@ -29,8 +29,8 @@
 		"userConfirmedUseCompilerModuleSwitch": false
 	},
 	"appid": "wx659e3245769d466c",
-	"projectname": "cloud-mini-app",
-	"libVersion": "2.7.1",
+	"projectname": "hustau-site-material-miniapp",
+	"libVersion": "2.10.4",
 	"simulatorType": "wechat",
 	"simulatorPluginLibVersion": {},
 	"condition": {}

@@ -8,12 +8,15 @@ cloud.init({
 const db = cloud.database();
 const utils = require("./utils.js");
 
-/** 设置合法的collection名字, 用于检验传入值 */
+/**
+ * 设置合法的collection名字, 用于检验传入值 
+ */
 const collectionList = ["adminInfo", "forms", "formsForMaterials", "items", "addNewMaterials"];
 
 /** 
  * 用于检查 coName 是否是合法的 collection 名
  * @param {String} coName - 待检测的名称
+ * @function inCollections
  * @return {Boolean} 是否合法(在数组中)
  */
 function inCollections(coName) {
@@ -28,12 +31,21 @@ function inCollections(coName) {
  * @param {Object} ft 传入的filter, 可有自定义filter, 详见各个case
  */
 function toFilter(ft) {
+  /**
+   * 检查 ft
+   */
   if (!ft || Object.keys(ft).length === 0) return false;
   let x, obj = {};
 
-  // loop for all object properties
+  /**
+   * loop for all object properties
+   */
   for (let s in ft) {
     switch (s) {
+      /**
+       * 查询筛选，字段的值在给定的数组内
+       * @method db.command.in 
+       */
       case "exam":
         if (utils.isArray(ft[s])) {
           x = [];
