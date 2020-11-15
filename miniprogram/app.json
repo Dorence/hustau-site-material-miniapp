@@ -1,9 +1,8 @@
 {
   "pages": [
-    "pages/facilities/listBorrow",
     "pages/facilities/index",
     "pages/facilities/borrowClassroom",
-    
+    "pages/facilities/listBorrow",
     "pages/facilities/superAdmin/superAdmin",
     "pages/facilities/superAdmin/userBind",
     "pages/approval/exportApproval",

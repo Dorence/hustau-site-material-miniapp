@@ -40,3 +40,12 @@ picker .weui-input {
   min-height: 24px;
   line-height: 48px;
 }
+
+.quickDate_select {
+  width: 25%;
+}
+
+.quickDate {
+  display: flex;
+  flex-direction: row;
+}

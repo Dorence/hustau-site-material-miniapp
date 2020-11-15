@@ -8,7 +8,7 @@ Page({
     listData: [],
     showIndex: 0,
     text: app.globalData.rule,
-    fourDate: [{"value":"7 days before"}, {"value":"1 days before"}, {"value":"1 days after"}, {"value":"7 days after"}],
+    fourDate: [{"value":"7天前"}, {"value":"1天前"}, {"value":"1天后"}, {"value":"7天后"}],
     lit: [app._toDateStr(new Date(new Date().setDate(new Date().getDate() - 7)), true), app._toDateStr(new Date(new Date().setDate(new Date().getDate() - 1)), true), app._toDateStr(new Date(new Date().setDate(new Date().getDate() + 1)), true), app._toDateStr(new Date(new Date().setDate(new Date().getDate() + 7)), true)]
   },
   onLoad() {
@@ -26,48 +26,15 @@ Page({
   },
 
   quickDateChange(e) {
-    console.log("[quickDateChange]", e.detail.y);
+    console.log("[quickDateChange]", e.detail.x);
     for (let i = 0; i < 4; i++){
-      if (Math.floor((e.detail.y - 86) / 44) == i){
+      if (Math.floor((e.detail.x) / 93.83) == i){
         this.setData({
           date: this.data.lit[i],
           listData: []
         });
       }
     }
-    this.updateTable();
-  },
-
-  quickDateChange1(e) {
-    console.log("[quickDateChange1]", e.detail);
-    this.setData({
-      date: app._toDateStr(new Date(new Date().setDate(new Date().getDate() - 7)), true),
-      listData: []
-    });
-    this.updateTable();
-  },
-  quickDateChange2(e) {
-    console.log(e.detail);
-    this.setData({
-      date: app._toDateStr(new Date(new Date().setDate(new Date().getDate() - 1)), true),
-      listData: []
-    });
-    this.updateTable();
-  },
-  quickDateChange3(e) {
-    console.log(e.detail);
-    this.setData({
-      date: app._toDateStr(new Date(new Date().setDate(new Date().getDate() + 1)), true),
-      listData: []
-    });
-    this.updateTable();
-  },
-  quickDateChange4(e) {
-    console.log(e.detail);
-    this.setData({
-      date: app._toDateStr(new Date(new Date().setDate(new Date().getDate() + 7)), true),
-      listData: []
-    });
     this.updateTable();
   },
 
