@@ -8,7 +8,8 @@ Page({
     listData: [],
     showIndex: 0,
     text: app.globalData.rule,
-    fourDate: [{"value":"7 days before", "day":-7}, {"value":"1 days before", "day":-1}, {"value":"1 days after", "day":1}, {"value":"7 days after", "day":1}]
+    fourDate: [{"value":"7 days before"}, {"value":"1 days before"}, {"value":"1 days after"}, {"value":"7 days after"}],
+    lit: [app._toDateStr(new Date(new Date().setDate(new Date().getDate() - 7)), true), app._toDateStr(new Date(new Date().setDate(new Date().getDate() - 1)), true), app._toDateStr(new Date(new Date().setDate(new Date().getDate() + 1)), true), app._toDateStr(new Date(new Date().setDate(new Date().getDate() + 7)), true)]
   },
   onLoad() {
     this.updateTable();
@@ -25,12 +26,11 @@ Page({
   },
 
   quickDateChange(e) {
-    console.log(e.detail);
+    console.log("[quickDateChange]", e.detail.y);
     for (let i = 0; i < 4; i++){
-      if (e.detail.value == this.data.fourDate[i].value){
+      if (Math.floor((e.detail.y - 86) / 44) == i){
         this.setData({
-          const j = this.data.fourDate[i].day,
-          date: app._toDateStr(new Date(new Date().setDate(new Date().getDate() + j)), true),
+          date: this.data.lit[i],
           listData: []
         });
       }
@@ -39,7 +39,7 @@ Page({
   },
 
   quickDateChange1(e) {
-    console.log(e.detail);
+    console.log("[quickDateChange1]", e.detail);
     this.setData({
       date: app._toDateStr(new Date(new Date().setDate(new Date().getDate() - 7)), true),
       listData: []
