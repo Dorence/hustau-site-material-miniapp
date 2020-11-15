@@ -17,6 +17,17 @@
 				</view>
 			</view>
 		</view>
+		<view class="quickDate">
+			<view wx:for="{{fourDate}}" wx:key="key">
+				<button bindtap="quickDateChange">{{item.value}}</button>
+			</view>
+		</view>
+		<view>
+			<button bindtap="quickDateChange1">7 days before</button>
+			<button bindtap="quickDateChange2">1 day before</button>
+			<button bindtap="quickDateChange3">1 day after</button>
+			<button bindtap="quickDateChange4">7 days after</button>
+		</view>
 
 		<!-- table -->
 		<view class="weui-panel">
