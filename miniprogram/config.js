@@ -12,7 +12,7 @@
             ["文本类", "F"],
             ["其他", "G"],
         ],
-        dbFacFormCollection: "forms", // database
+        dbFacFormCollection: "forms", // database for facilities forms
 
     };
 
