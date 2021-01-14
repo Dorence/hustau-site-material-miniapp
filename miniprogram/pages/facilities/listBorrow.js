@@ -1,13 +1,25 @@
 // pages/noticeBoard/index.js
 const app = getApp();
-const db = wx.cloud.database();
 
 Page({
   data: {
     date: app._toDateStr(new Date(), true),
     listData: [],
     showIndex: 0,
-    text: app.globalData.rule
+    text: app.globalData.rule,
+    quickDate: [{
+      text: "<上周",
+      offset: -7
+    }, {
+      text: "前一天",
+      offset: -1
+    }, {
+      text: "后一天",
+      offset: 1
+    }, {
+      text: "下周>",
+      offset: 7
+    }]
   },
   onLoad() {
     this.updateTable();
@@ -23,6 +35,30 @@ Page({
     }
   },
 
+  quickDateChange(e) {
+    console.log("[quickDateChange]", e.currentTarget.dataset);
+    const dataset = e.currentTarget.dataset || {};
+    if (dataset.offset) {
+      let d = new Date(this.data.date);
+      d.setDate(d.getDate() + dataset.offset);
+      console.log("date", this.data.date, "d", d);
+      this.setData({
+        date: app._toDateStr(d, true),
+        listData: []
+      });
+      this.updateTable();
+    }
+    // for (let i = 0; i < 4; i++) {
+    //   if (Math.floor((e.detail.x) / 93.83) == i) {
+    //     this.setData({
+    //       date: this.data.lit[i],
+    //       listData: []
+    //     });
+    //   }
+    // }
+    this.updateTable();
+  },
+
   /** 
    * get database 
    */
@@ -32,7 +68,7 @@ Page({
       name: "operateForms",
       data: {
         caller: "listBorrow",
-        collection: "forms",
+        collection: app.globalData.dbFacFormCollection,
         filter: {
           exam: 3,
           date: this.data.date
@@ -68,8 +104,8 @@ Page({
         wx.showToast({
           title: "当日无借用",
           icon: "success",
-          mask: true,
-          duration: 1000
+          mask: false,
+          duration: 800
         });
         that.setData({
           listData: [{

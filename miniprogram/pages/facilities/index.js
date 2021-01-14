@@ -1,6 +1,8 @@
 // pages/facilities/index.js
 const app = getApp();
 const db = wx.cloud.database();
+const forms = db.collection(app.globalData.dbFacFormCollection);
+
 let callLoginCnt = 0; // count times of calling Page.callCloudLogin
 
 Page({
@@ -137,7 +139,7 @@ Page({
     expireDate.setFullYear(expireDate.getFullYear() - 1);
 
     function updateSingle(flag, page) {
-      return db.collection("forms").where({
+      return forms.where({
         exam: flag,
         submitDate: db.command.gte(expireDate)
       }).count().then(res => {

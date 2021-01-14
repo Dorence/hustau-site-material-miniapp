@@ -19,7 +19,9 @@ App({
     status: 0,
     appFullName: CFG.appFullName,
     classroomList: CFG.classroomList,
-    contactEmail: CFG.contactEmail
+    contactEmail: CFG.contactEmail,
+    matCategory: CFG.matCategory,
+    dbFacFormCollection: CFG.dbFacFormCollection,
   },
   globalForm: {},
   onLaunch() {
@@ -33,8 +35,8 @@ App({
     } else {
       wx.cloud.init({
         traceUser: true,
-        env: "cloud-miniapp-96177b"
-        // env: "release-824dd3"
+        // env: "cloud-miniapp-96177b"
+        env: "release-824dd3"
       });
     }
   },

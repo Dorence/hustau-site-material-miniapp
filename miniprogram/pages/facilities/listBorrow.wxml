@@ -11,10 +11,16 @@
 					<text class="weui-label">选择日期</text>
 				</view>
 				<view class="weui-cell__bd">
-					<picker mode="date" name="eventDate" value="{{date}}" start="2019-01-01" end="2199-12-31" bindchange="bindDateChange">
+					<picker mode="date" name="eventDate" value="{{date}}" start="2019-01-01" end="2199-12-31"
+						bindchange="bindDateChange">
 						<view class="weui-input">{{date}}</view>
 					</picker>
 				</view>
+			</view>
+		</view>
+		<view class="quickDate">
+			<view class="quickDateBtn" wx:for="{{quickDate}}" wx:for-item="item" wx:key="offset">
+				<button bindtap="quickDateChange" data-offset="{{item.offset}}">{{item.text}}</button>
 			</view>
 		</view>
 
