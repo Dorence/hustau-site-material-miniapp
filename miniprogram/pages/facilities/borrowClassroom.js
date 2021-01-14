@@ -10,18 +10,21 @@ Page({
     timeBIndex: [0, 0],
     timeArr: (() => {
       let hr = [],
-        mi = ["00", "05"],
-        i;
-      for (i = 7; i <= 22; i++)
+        mi = ["00", "05"];
+      for (let i = 7; i <= 22; i++)
         hr.push(i);
-      for (i = 10; i <= 55; i += 5)
+      for (let i = 10; i <= 55; i += 5)
         mi.push(i);
       return [hr, mi];
     })(),
     index: 0,
-    array: ["请选择", "201", "205", "207", "208"],
+    array: (() => {
+      let arr = Object.assign([], app.globalData.classroomList);
+      arr.unshift("请选择");
+      return arr;
+    })(),
     maxContentLength: 300,
-    contentLength: 0
+    contentLength: 0 /* textarea */
   },
   /**
    * 页面加载时的事件
@@ -226,7 +229,7 @@ Page({
    * 借用教室picker改变的函数
    */
   bindNumberChange: function (e) {
-    console.log("classroomNumber发生选择改变，携带值为", e.detail.value)
+    console.log("[bindNumberChange]", e.detail.value)
     this.setData({
       index: e.detail.value
     })

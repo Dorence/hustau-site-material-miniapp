@@ -1,14 +1,14 @@
 //app.js
-const ContactEmail = "bangongshi_hustag@163.com";
-const AppFullName = "HUST社指36号楼场地及物资借用"
+const CFG = require("./config.js");
+// console.log(CFG);
 
 App({
   globalData: {
-    rule: `\n 1. 请至少提前两天准备好活动策划。在${AppFullName}小程序上申请借用教室，并将策划电子版以“36号楼教室借用+协会名称+日期”的方式命名发送至办公室公邮${ContactEmail}。审批情况可在小程序上查询，审批通过方可使用;
+    rule: `\n 1. 请至少提前两天准备好活动策划。在${CFG.appFullName}小程序上申请借用教室，并将策划电子版以“36号楼教室借用+协会名称+日期”的方式命名发送至办公室公邮${CFG.contactEmail}。审批情况可在小程序上查询，审批通过方可使用;
 
     2.使用教室的当天须将手机上教室借用确认单给阿姨查看，并在二楼值班处在36号楼教室借用登记表上进行借用登记;
     
-    3.建议申请前先查询教室是否空闲，查询方式: ${AppFullName}小程序——教室借用查询;
+    3.建议申请前先查询教室是否空闲，查询方式: ${CFG.appFullName}小程序——教室借用查询;
     
     4.房间钥匙请找阿姨取用，教室使用结束后请将门锁好，把钥匙交给阿姨并在36号楼教室借用登记表上签离;
     
@@ -17,8 +17,9 @@ App({
     6.如有任何疑问，请联系36号楼教室借用负责人董雨奇:13050977519。
     `,
     status: 0,
-    appFullName: AppFullName,
-    contactEmail: ContactEmail
+    appFullName: CFG.appFullName,
+    classroomList: CFG.classroomList,
+    contactEmail: CFG.contactEmail
   },
   globalForm: {},
   onLaunch() {
@@ -27,13 +28,13 @@ App({
       wx.showToast({
         title: "请升级微信以使用小程序",
         icon: "none",
-        duration: 60000
+        duration: 30000
       });
     } else {
       wx.cloud.init({
         traceUser: true,
-        // env: "cloud-miniapp-96177b"
-        env: "release-824dd3"
+        env: "cloud-miniapp-96177b"
+        // env: "release-824dd3"
       });
     }
   },

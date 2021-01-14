@@ -7,18 +7,20 @@ Page({
   data: {
     avatarUrl: "../../assets/user-unlogin.png",
     exam: [{
-      num: null,
-      text: "未审批"
-    }, {
-      num: null,
-      text: "撤回"
-    }, {
-      num: null,
-      text: "未通过"
-    }, {
-      num: null,
-      text: "已通过"
-    }],
+        num: null,
+        text: "未审批"
+      },
+      {
+        num: null,
+        text: "撤回"
+      }, {
+        num: null,
+        text: "未通过"
+      }, {
+        num: null,
+        text: "已通过"
+      }
+    ],
     bigItems: [{
         name: "教室借用查询",
         url: "listBorrow",
@@ -63,7 +65,7 @@ Page({
       .then(() => {
         wx.stopPullDownRefresh({
           complete() {
-            console.log("[onPullDownRefresh] Finish refreshing.");
+            console.log("[onPullDownRefresh] Finish.");
           }
         });
         return true;

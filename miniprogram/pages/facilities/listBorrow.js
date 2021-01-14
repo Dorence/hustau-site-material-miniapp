@@ -71,6 +71,15 @@ Page({
           mask: true,
           duration: 1000
         });
+        that.setData({
+          listData: [{
+            association: "",
+            room: "空闲",
+            time: "",
+            responser: "",
+            tel: ""
+          }]
+        });
       }
     }).catch(console.error);
   }
