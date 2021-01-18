@@ -91,7 +91,7 @@ function fetchDB(PAGE) {
       name: "operateForms",
       data: {
         caller: "getAppr",
-        collection: "forms",
+        collection: app.globalData.dbFacFormCollection,
         docID: PAGE.data.id,
         isDoc: true,
         operate: "read"
@@ -220,7 +220,7 @@ Page({
             wx.navigateBack({
               delta: 1
             });
-          }, 3100);
+          }, 2000);
         }
       });
       return;
@@ -259,7 +259,7 @@ Page({
     console.log("[update]", this.data.id, " [flag]", flag, " [value]", value);
 
     // switch db.collection
-    if (PAGE.data.type == 'facilities') var collectionName = "forms";
+    if (PAGE.data.type == 'facilities') var collectionName = app.globalData.dbFacFormCollection;
     else if (PAGE.data.type == 'materials') var collectionName = "formsForMaterials";
     wx.showLoading({
       title: "提交中",
@@ -471,8 +471,7 @@ Page({
   },
 
   /**
-   * userInput()
-   * 输入活动内容时的响应, 显示字数
+   * 输入活动内容时更新字数
    * @param {Object} e 传入的事件, e.detail.value为文本表单的内容
    */
   userInput: function (e) {
@@ -493,7 +492,7 @@ Page({
       eventDate: app._toDateStr(new Date(a.eventDate), true)
     };
     console.log("[filter]", filter);
-    db.collection("forms").where(filter).field({
+    db.collection(app.globalData.dbFacFormCollection).where(filter).field({
         eventTime1: true,
         eventTime2: true,
         formid: true

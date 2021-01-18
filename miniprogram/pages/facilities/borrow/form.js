@@ -19,7 +19,7 @@ Page({
     })(),
     index: 0,
     array: (() => {
-      let arr = Object.assign([], app.globalData.classroomList);
+      let arr = app.globalData.facRoomList.slice(); // copy an array
       arr.unshift("请选择");
       return arr;
     })(),

@@ -8,21 +8,12 @@ let callLoginCnt = 0; // count times of calling Page.callCloudLogin
 Page({
   data: {
     avatarUrl: "../../assets/user-unlogin.png",
-    exam: [{
+    exam: app.globalData.facExamStr.map(text => {
+      return {
         num: null,
-        text: "未审批"
-      },
-      {
-        num: null,
-        text: "撤回"
-      }, {
-        num: null,
-        text: "未通过"
-      }, {
-        num: null,
-        text: "已通过"
+        text
       }
-    ],
+    }),
     bigItems: [{
         name: "教室借用查询",
         url: "borrow/query",

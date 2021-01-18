@@ -17,12 +17,7 @@ App({
 
  6. 如有任何疑问，请联系36号楼教室借用负责人董雨奇: 13050977519。
     `,
-    status: 0,
-    appFullName: CFG.appFullName,
-    classroomList: CFG.classroomList,
-    contactEmail: CFG.contactEmail,
-    matCategory: CFG.matCategory,
-    dbFacFormCollection: CFG.dbFacFormCollection,
+    status: 0
   },
   globalForm: {},
   onLaunch() {
@@ -39,6 +34,8 @@ App({
         // env: "cloud-miniapp-96177b"
         env: "release-824dd3"
       });
+      for (let item in CFG)
+        this.globalData[item] = CFG[item];
     }
   },
   /**
