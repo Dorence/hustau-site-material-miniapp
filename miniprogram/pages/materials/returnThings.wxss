@@ -1,6 +1,7 @@
 /* miniprogram/pages/materials/returnThings.wxss */
 @import "../../assets/weui.wxss";
-@import "../facilities/borrowClassroom.wxss";
+@import "../facilities/borrow/form.wxss";
+
 #head{
   font-size: x-large;
   padding: 5px 27% 0px;

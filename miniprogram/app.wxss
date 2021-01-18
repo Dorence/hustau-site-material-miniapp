@@ -43,3 +43,8 @@ page {
 .weui-form-preview {
   margin: 10rpx;
 }
+
+.weui-footer {
+  margin-bottom: 64rpx;
+  margin-top: 32rpx;
+}

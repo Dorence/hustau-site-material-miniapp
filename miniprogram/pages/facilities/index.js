@@ -25,12 +25,12 @@ Page({
     ],
     bigItems: [{
         name: "教室借用查询",
-        url: "listBorrow",
+        url: "borrow/query",
         icon: "../../assets/availableClassroom.png"
       },
       {
         name: "教室借用",
-        url: "borrowClassroom",
+        url: "borrow/form",
         icon: "../../assets/borrowClassroom.png"
       },
       {

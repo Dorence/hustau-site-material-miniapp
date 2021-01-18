@@ -1,5 +1,5 @@
 /* /pages/facilities/borrowClassroom.wxss */
-@import "../../assets/weui.wxss";
+@import "../../../assets/weui.wxss";
 
 .page {
   padding-bottom: 500rpx;
