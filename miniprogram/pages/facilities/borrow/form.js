@@ -1,7 +1,7 @@
 // pages/facilities/borrowClassroom.js
 const app = getApp();
 const db = wx.cloud.database();
-const forms = db.collection("forms");
+const forms = db.collection(app.globalData.dbFacFormCollection);
 
 Page({
   data: {
@@ -19,30 +19,36 @@ Page({
     })(),
     index: 0,
     array: (() => {
-      let arr = Object.assign([], app.globalData.classroomList);
+      let arr = app.globalData.facRoomList.slice(); // copy an array
       arr.unshift("请选择");
       return arr;
     })(),
     maxContentLength: 300,
+    canSubmit: false,
+    /* submit button */
     contentLength: 0 /* textarea */
   },
   /**
    * 页面加载时的事件
    */
-  onLoad: function () {
+  onLoad() {
     wx.showModal({
       title: "注意事项",
       content: app.globalData.rule,
       showCancel: false,
-      confirmText: "好"
+      confirmText: "好",
+      complete: () => {
+        this.setData({
+          canSubmit: true
+        });
+      }
     });
   },
   /**
-   * toFormObject()
-   * @param {object} data submit时表单的数据
    * 校验数据并生成对应的数据库对象
+   * @param {object} data submit时表单的数据
    */
-  toFormObject: function (data) {
+  toFormObject(data) {
     const p = this.data;
     if (!p.index) return {
       err: "请选择教室"
@@ -86,16 +92,18 @@ Page({
       },
       submitDate: new Date(),
       exam: 0
-    }
+    };
   },
   /**
-   * 在线填表页面点击报名的函数
+   * Submit the form.
+   * @param {object} e event
    */
-  submit: function (e) {
-    const PAGE = this;
-    const formsData = e.detail.value;
-    // console.log("[formsData]",formsData);
-    let formObj = this.toFormObject(formsData);
+  submit(e) {
+    const data = e.detail.value;
+    console.log("[submit]", data);
+
+    let formObj = this.toFormObject(data);
+
     // has error
     if (formObj.hasOwnProperty("err")) {
       wx.showModal({
@@ -104,76 +112,48 @@ Page({
         showCancel: false,
         confirmText: "再去改改"
       });
-      return;
+      return false;
     }
 
+    // add a mask to prevent multiple submissions
+    wx.showLoading({
+      mask: true,
+      title: "提交中..."
+    });
+    this.setData({
+      canSubmit: false
+    });
+
     forms.orderBy("formid", "desc").limit(2).field({
-        formid: true,
-        exam: true,
-        submitDate: true
-      }).get()
-      .then(res => {
-
-        let genIDNew = (formid) => {
-          formid = formid.toString();
-          console.log("previous formid", formid);
-
-          let tm = new Date();
-          let season = !(tm.getMonth() >= 1 && tm.getMonth() < 7);
-          // @note - getMonth() => 0:Jan, 1:Feb, ... , 11:Dec
-          let prefix = tm.getFullYear().toString() + (season ? "Fall" : "Spri");
-
-          let newFormNumber = 1;
-          if (formid.substring(0, 8) === prefix)
-            newFormNumber = Number(formid.substring(8)) + 1;
-          console.log("[newFormNumber]", newFormNumber);
-
-          let newID = "";
-          for (let i = 0; i < 5; i++) {
-            let m = newFormNumber % 10;
-            // JS calculate '%' and '/' as float
-            newID = m + newID;
-            newFormNumber = (newFormNumber - m) / 10;
-          }
-          newID = prefix + newID;
-          console.log("[newID]", newID);
-          return newID;
-        };
-
-        // let genIDOld = (formid) => {
-        //   console.log("previous formid", formid);
-        //   let date = new Date();
-        //   let yr = date.getFullYear();
-        //   let newFormNumber = "00001";
-        //   if (formid && Number(formid.substr(0, 4)) === yr) {
-        //     return (Number(formid) + 1).toString();
-        //   } else {
-        //     return yr + "00001";
-        //   }
-        // };
-
-        formObj.formid = genIDNew(res.data[0] ? res.data[0].formid : "");
-        console.log("[formObj]", formObj);
-        // begin forms.add()
-        forms.add({
-          data: formObj,
-          success(res) {
-            console.log("Successfully add to db!");
-            wx.showModal({
-              title: "提交成功",
-              content: `请确保策划案发送至公邮${app.globalData.contactEmail}并耐心等待审核结果`,
-              success: res => {
-                if (res.confirm)
-                  wx.navigateBack({
-                    delta: 1
-                  });
-              }
-            });
-            // end showModal
-          }
-        });
-        // end forms.add()
+      formid: true,
+      exam: true,
+      submitDate: true
+    }).get().then(res => {
+      formObj.formid = app._genFormid(res.data[0] ? res.data[0].formid : "");
+      console.log("[formObj]", formObj);
+      // begin forms.add()
+      forms.add({
+        data: formObj,
+        success(res) {
+          console.log("Successfully add to db!");
+          wx.hideLoading();
+          wx.showModal({
+            title: "提交成功",
+            content: `请确保策划案发送至${app.globalData.contactEmail}并耐心等待审核结果`,
+            success(res) {
+              if (res.confirm)
+                wx.navigateBack({
+                  delta: 1
+                });
+            }
+          });
+          // end showModal
+        }
       });
+      // end forms.add()
+    });
+
+    return true;
   },
   /**
    * 活动日期picker改变的函数

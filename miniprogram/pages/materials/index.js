@@ -5,25 +5,12 @@ const db = wx.cloud.database();
 Page({
   data: {
     avatarUrl: "../../assets/user-unlogin.png",
-    exam: [{
-      num: null,
-      text: "未审批"
-    }, {
-      num: null,
-      text: "撤回"
-    }, {
-      num: null,
-      text: "未通过"
-    }, {
-      num: null,
-      text: "已借出"
-    }, {
-      num: null,
-      text: "待归还"
-    }, {
-      num: null,
-      text: "已归还"
-    }],
+    exam: app.globalData.matExamStr.map(text => {
+      return {
+        num: null,
+        text
+      }
+    }),
     examNewMaterials: [{
       num: null,
       text: "未审批"
@@ -37,14 +24,14 @@ Page({
         icon: "../../assets/borrowClassroom.png"
       },
       {
-        name: "表单状态",
-        url: "../progressCheck/progressCheck?type=materials",
-        icon: "../../assets/progressCheck.png"
-      },
-      {
         name: "新增仓库物资",
         url: "addThings",
         icon: "../../assets/plus.png"
+      },
+      {
+        name: "表单状态查询",
+        url: "../progressCheck/progressCheck?type=materials",
+        icon: "../../assets/progressCheck.png"
       }
     ]
   },
@@ -104,7 +91,7 @@ Page({
     });
   },
   /** 检查用户是否是管理员 */
-  isUserAdmin () {
+  isUserAdmin() {
     if (app.loginState && typeof app.loginState === "object")
       return app.loginState.isLogin && app.loginState.isAdmin;
     else
@@ -231,7 +218,7 @@ Page({
   /**
    * 监听页面加载
    */
-  onLoad (options) {
+  onLoad(options) {
     this.checkLogin();
     // 获取用户信息
     this.getUserInfo();
@@ -240,17 +227,17 @@ Page({
   /**
    * 用户点击右上角分享
    */
-  onShareAppMessage (res) {
+  onShareAppMessage(res) {
     return {
       title: app.globalData.appFullName,
       path: "/pages/materials/materialsIndex"
     }
   },
-  
+
   /** 
    * 监听用户下拉动作
    */
-  onPullDownRefresh () {
+  onPullDownRefresh() {
     Promise.all([this.checkLogin(), this.getUserInfo()])
       .then(() => {
         wx.stopPullDownRefresh({

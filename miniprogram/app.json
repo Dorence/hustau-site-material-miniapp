@@ -1,17 +1,17 @@
 {
   "pages": [
     "pages/facilities/index",
-    "pages/facilities/borrowClassroom",
-    "pages/facilities/listBorrow",
-    "pages/facilities/superAdmin/superAdmin",
-    "pages/facilities/superAdmin/userBind",
+    "pages/materials/index",
     "pages/approval/exportApproval",
     "pages/approval/listApproval",
     "pages/approval/viewApproval",
+    "pages/facilities/admin/superAdmin",
+    "pages/facilities/admin/userBind",
+    "pages/facilities/borrow/form",
+    "pages/facilities/borrow/query",
     "pages/materials/borrowThings",
     "pages/materials/borrowThings_form",
     "pages/materials/addThings",
-    "pages/materials/materialsIndex",
     "pages/materials/returnThings",
     "pages/progressCheck/printForm",
     "pages/progressCheck/printForm_materials",
@@ -36,7 +36,7 @@
         "text": "场地借用"
       },
       {
-        "pagePath": "pages/materials/materialsIndex",
+        "pagePath": "pages/materials/index",
         "iconPath": "assets/notification.png",
         "selectedIconPath": "assets/notification-HL.png",
         "text": "物资借用"

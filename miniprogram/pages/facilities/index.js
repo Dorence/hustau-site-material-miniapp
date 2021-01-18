@@ -1,34 +1,27 @@
 // pages/facilities/index.js
 const app = getApp();
 const db = wx.cloud.database();
+const forms = db.collection(app.globalData.dbFacFormCollection);
+
 let callLoginCnt = 0; // count times of calling Page.callCloudLogin
 
 Page({
   data: {
     avatarUrl: "../../assets/user-unlogin.png",
-    exam: [{
+    exam: app.globalData.facExamStr.map(text => {
+      return {
         num: null,
-        text: "未审批"
-      },
-      {
-        num: null,
-        text: "撤回"
-      }, {
-        num: null,
-        text: "未通过"
-      }, {
-        num: null,
-        text: "已通过"
+        text
       }
-    ],
+    }),
     bigItems: [{
         name: "教室借用查询",
-        url: "listBorrow",
+        url: "borrow/query",
         icon: "../../assets/availableClassroom.png"
       },
       {
         name: "教室借用",
-        url: "borrowClassroom",
+        url: "borrow/form",
         icon: "../../assets/borrowClassroom.png"
       },
       {
@@ -137,7 +130,7 @@ Page({
     expireDate.setFullYear(expireDate.getFullYear() - 1);
 
     function updateSingle(flag, page) {
-      return db.collection("forms").where({
+      return forms.where({
         exam: flag,
         submitDate: db.command.gte(expireDate)
       }).count().then(res => {

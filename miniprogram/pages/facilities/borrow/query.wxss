@@ -1,0 +1,57 @@
+/** pages/facilities/listBorrow.wxss **/
+@import "../../../assets/weui.wxss";
+
+.table {
+  background-color: #fff;
+}
+
+.tr {
+  align-items: center;
+  display: flex;
+  height: auto;
+  justify-content: center;
+  width: 100%;
+  word-break: break-all;
+}
+
+.tr.tr-even {
+  background: #bdd4ff;
+  text-shadow: 0rpx 0rpx 5rpx #ffffffbb;
+}
+
+.td,
+.th {
+  justify-content: center;
+  padding: 0;
+  text-align: center;
+  width: 5rem;
+}
+
+.th {
+  align-items: center;
+  background-color: #1e90ff;
+  color: #fff;
+  display: flex;
+  font-weight: bold;
+  height: 2rem;
+}
+
+picker .weui-input {
+  height: 100rpx;
+  line-height: 100rpx;
+}
+
+.quickDate {
+  display: flex;
+  flex-direction: row;
+  margin-top: 10rpx;
+}
+
+.quickDateBtn {
+  width: calc(25% - 2px);
+  margin: auto;
+}
+
+.quickDateBtn button {
+  font-size: 14px;
+}

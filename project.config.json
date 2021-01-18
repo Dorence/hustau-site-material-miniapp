@@ -19,7 +19,7 @@
         "checkSiteMap": false,
         "uploadWithSourceMap": true,
         "compileHotReLoad": false,
-        "useMultiFrameRuntime": false,
+        "useMultiFrameRuntime": true,
         "useApiHook": true,
         "babelSetting": {
             "ignore": [],
@@ -32,7 +32,9 @@
         "userConfirmedUseCompilerModuleSwitch": false,
         "packNpmManually": false,
         "packNpmRelationList": [],
-        "minifyWXSS": true
+        "minifyWXSS": true,
+        "bundle": false,
+        "useApiHostProcess": true
     },
     "appid": "wx659e3245769d466c",
     "projectname": "hustau-site-material-miniapp",

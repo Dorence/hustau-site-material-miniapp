@@ -11,17 +11,21 @@ Page({
   data: {
     // array: [], 
     location: [1, 1], //location 初值为[1,1] 即对应：一号仓库 货架号1 无分区
-    category:['服饰类','宣传类','奖品类','工具类','装饰类','文本类','其他'],
-    genreLetters : ["A", "B", "C", "D", "E", "F", "G"],
-    genreIndex:0,
+    category: app.globalData.matCategory,
+    genreLetters: ["A", "B", "C", "D", "E", "F", "G"],
+    genreIndex: 0,
     genre: "A",
     // index: 0,
     isOriginalMaterials: true,
-    locationArray: [['一号仓库', '二号仓库', "三号仓库", '四号仓库'], ['无货架号', '货架号1', '货架号2', '货架号3', '货架号4', '货架号5', '货架号6'], ['无分区号','分区A', '分区B', '分区C', '分区D','分区E']],
+    locationArray: [
+      ['一号仓库', '二号仓库', "三号仓库", '四号仓库'],
+      ['无货架', '货架1', '货架2', '货架号3', '货架号4', '货架号5', '货架号6'],
+      ['无分区', '分区A', '分区B', '分区C', '分区D', '分区E']
+    ],
     locationIndex: [0, 1, 0], //用于选择器的index信息
     date: app._toDateStr(new Date(), true)
-   
-    },
+
+  },
   bindCategoryChange: function (e) {
     console.log('picker发送选择改变，携带值为', e.detail.value)
     const PAGE = this
@@ -34,9 +38,9 @@ Page({
     })
     console.log(PAGE.data.genre)
     console.log(PAGE.data.genreIndex)
-  },//新增物资类别
+  }, //新增物资类别
 
- bindPickerChange: function (e) {
+  bindPickerChange: function (e) {
     console.log('picker发送选择改变，携带值为', e.detail.value)
     this.setData({
       index: e.detail.value
@@ -53,51 +57,50 @@ Page({
     const PAGE = this;
     const value = e.detail.value;
 
-    function locationIndexToLocation(idx){
-      var value1= idx.slice();
+    function locationIndexToLocation(idx) {
+      var value1 = idx.slice();
 
-      value1[0] = value1[0] +  1;
+      value1[0] = value1[0] + 1;
       if (value1[2] == 0) {
         value1.pop();
         if (value1[1] == 0) value1.pop();
-      }
-      else 
-      { value1[2] = PAGE.data.genreLetters[value1[2]-1]
+      } else {
+        value1[2] = PAGE.data.genreLetters[value1[2] - 1]
         // convert index to genre letters
-        if (value1[1] == 0) value1[1] = null;}
+        if (value1[1] == 0) value1[1] = null;
+      }
 
       return value1
     }
 
     let loc = locationIndexToLocation(value);
-    console.log("location",loc)
-    console.log("locationIndex",value)
+    console.log("location", loc)
+    console.log("locationIndex", value)
     PAGE.setData({
       location: loc,
       locationIndex: value
     })
     console.log(PAGE.data)
-  },//物资位置
+  }, //物资位置
 
-  bindDateChange: function(e)
-  {
+  bindDateChange: function (e) {
     // console.log('picker发送选择改变，携带值为', e.detail.value)
     this.setData({
-     date: e.detail.value
+      date: e.detail.value
     })
     console.log(this.data.date)
-  },//新增时间
+  }, //新增时间
 
-  switchChange: function(e) {
+  switchChange: function (e) {
     const PAGE = this
     console.log('switch发送选择改变，携带值为', e.detail.value)
     PAGE.setData({
-      isOriginalMaterials:e.detail.value
-     })
-     console.log(PAGE.data)
+      isOriginalMaterials: e.detail.value
+    })
+    console.log(PAGE.data)
   },
 
-  
+
 
 
   //校验Forms
@@ -114,15 +117,16 @@ Page({
       ["phone", "联系方式"],
       // ["studentID", "学号"],
       // ["school&Class","院系和班级"]
-     
+
     ];
-    if (!p.isOriginalMaterials)
-    {trimArr.push(
-      ["addNumber", "新增物资数量"],
-      ["newmaterialName","新增物资名称"])}
+    if (!p.isOriginalMaterials) {
+      trimArr.push(
+        ["addNumber", "新增物资数量"],
+        ["newmaterialName", "新增物资名称"])
+    }
 
     for (let i = 0; i < trimArr.length; i++) {
-     // data[trimArr[i][0]] = data[trimArr[i][0]].trim();//去除空格？
+      // data[trimArr[i][0]] = data[trimArr[i][0]].trim();//去除空格？
       if (!data[trimArr[i][0]]) return {
         err: "请填写" + trimArr[i][1]
       };
@@ -140,49 +144,49 @@ Page({
 
     //TODO：新增原有物资时是否需要locationIndex?
     if (p.isOriginalMaterials)
-    return {
-        isOriginalMaterials:true,
-        addAssociation:data["associationName"],
+      return {
+        isOriginalMaterials: true,
+        addAssociation: data["associationName"],
         addNumber: Number(data["addNumber"]),
-        location:p.location, 
+        location: p.location,
         addDate: p.date,
         //isOriginalMaterials == true
-        itemId:p.itemId,
-        itemName:p.itemName,
+        itemId: p.itemId,
+        itemName: p.itemName,
         itemDocId: p.itemDocId,
         name: data["responser"],
         phoneNumber: data.phone,
         // studentID: data.studentID,
         comment: data.remarks,
         submitDate: new Date(),
-        exam: 0      
-    }
+        exam: 0
+      }
     else
-    return {
-      isOriginalMaterials:false,
-      addAssociation:data["associationName"],
-      addNumber: Number(data["addNumber"]),
-      location:p.location,
-      locationIndex: p.locationIndex,
-      addDate: p.date,
-      //isOriginalMaterials == false
-      genre:p.genre,//类别目录
-      genreIndex: p.genreIndex,
-      newMaterialName: data["newmaterialName"],
-      name: data["responser"],
-      phoneNumber: data.phone,
-      // studentID: data.studentID,
-      comment: data.remarks,
-      submitDate: new Date(),
-      exam: 0      
-  }
-  },//校验结束
+      return {
+        isOriginalMaterials: false,
+        addAssociation: data["associationName"],
+        addNumber: Number(data["addNumber"]),
+        location: p.location,
+        locationIndex: p.locationIndex,
+        addDate: p.date,
+        //isOriginalMaterials == false
+        genre: p.genre, //类别目录
+        genreIndex: p.genreIndex,
+        newMaterialName: data["newmaterialName"],
+        name: data["responser"],
+        phoneNumber: data.phone,
+        // studentID: data.studentID,
+        comment: data.remarks,
+        submitDate: new Date(),
+        exam: 0
+      }
+  }, //校验结束
 
   /**
-     * 在线填表页面点击提交的函数
-     */
+   * 在线填表页面点击提交的函数
+   */
   submit: function (e) {
-    const PAGE = this;//ERR formid读取失败，疑似没有正确连接数据库，读取逻辑也要改进
+    const PAGE = this; //ERR formid读取失败，疑似没有正确连接数据库，读取逻辑也要改进
     const formsData = e.detail.value;
     // console.log("[formsData]",formsData);
     let formObj = this.toFormObject(formsData);
@@ -201,13 +205,13 @@ Page({
       .then(res => {
         let prefix = (new Date().getFullYear() - 2000) + (1 < new Date().getMonth() < 8 ? "Spri" : "Fall")
         let newFormNumber = "00001";
-        if (res.data[0] && res.data[0].formid.slice(0,6) == prefix ) 
-        newFormNumber = (res.data[0].formid.slice(6,11) * 1 + 100001).toString().slice(1, 6); 
+        if (res.data[0] && res.data[0].formid.slice(0, 6) == prefix)
+          newFormNumber = (res.data[0].formid.slice(6, 11) * 1 + 100001).toString().slice(1, 6);
         //NOTE: "abc".slice(0,2) = "ab" not "abc" !
         // console.log("[max formid]", newFormNumber);
         formObj.formid = prefix + newFormNumber;
         console.log("[formObj]", formObj);
-       
+
         // begin forms.add()
         forms.add({
           data: formObj,
@@ -218,15 +222,16 @@ Page({
               content: "请妥善保留发票按流程报销",
               success: res => {
                 if (res.confirm)
-                  if (PAGE.data.isOriginalMaterials){
+                  if (PAGE.data.isOriginalMaterials) {
                     wx.navigateBack({
                       delta: 3
                     });
                   }
-                  else{
+                else {
                   wx.navigateBack({
                     delta: 1
-                  });}
+                  });
+                }
               }
             });
             // end showModal
@@ -244,34 +249,34 @@ Page({
     const PAGE = this
     PAGE.setData(options)
     // console.log(this.data)
-    if (PAGE.data.isOriginalMaterials && PAGE.data.itemId)
-    {
+    if (PAGE.data.isOriginalMaterials && PAGE.data.itemId) {
       db.collection("items").where({
-        itemId : PAGE.data.itemId
+        itemId: PAGE.data.itemId
       }).get({
         success(e) {
-          if (e.data.length == 1)
-          {location = e.data[0].location;
-          console.log("Item location:"+location);}
-          else console.error('itemId is not unique');
+          if (e.data.length == 1) {
+            location = e.data[0].location;
+            console.log("Item location:" + location);
+          } else console.error('itemId is not unique');
           PAGE.setData({
-            location: location
-          })
-        .catch(err => {
-      console.error("[itemLocation]failed", err);
-     })
-    },
-     fail: console.error
-    })}
-  
+              location: location
+            })
+            .catch(err => {
+              console.error("[itemLocation]failed", err);
+            })
+        },
+        fail: console.error
+      })
+    }
+
 
     // if (options.itemName && options.itemId)
     // this.setData({
     //   itemName: options.itemName,
     //   itemId: options.itemId
     // })
-    console.log('[addThings]',PAGE.data)
-   
+    console.log('[addThings]', PAGE.data)
+
   },
 
   /**

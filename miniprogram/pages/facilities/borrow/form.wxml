@@ -1,6 +1,6 @@
 <view class="page">
   <view class="page__hd">
-    <view class="page__title">借用填表</view>
+    <view class="page__title">场地借用填表</view>
   </view>
   <form class="page__bd" bindsubmit="submit">
     <!-- form cells-group 1 -->
@@ -33,7 +33,8 @@
       <view class="weui-cell weui-cell_input" style="padding-right: 0;">
         <view class="weui-cell__hd">活动日期</view>
         <view class="weui-cell__bd" style="margin-left: 16px;">
-          <picker mode="date" value="{{date}}" start="2019-01-01" end="2199-12-31" bindchange="bindDateChange" name="eventDate">
+          <picker mode="date" value="{{date}}" start="2019-01-01" end="2099-12-31" bindchange="bindDateChange"
+            name="eventDate">
             <view class="weui-select">{{date}}</view>
           </picker>
         </view>
@@ -42,13 +43,15 @@
       <view class="weui-cell weui-cell_input">
         <view class="weui-cell__bd">活动时间</view>
         <view class="weui-cell__bd">
-          <picker mode="multiSelector" value="{{timeAIndex}}" range="{{timeArr}}" bindchange="bindTimeChange1" bindcolumnchange="bindTimeColChange1">
+          <picker mode="multiSelector" value="{{timeAIndex}}" range="{{timeArr}}" bindchange="bindTimeChange1"
+            bindcolumnchange="bindTimeColChange1">
             <view class="weui-input">{{timeArr[0][timeAIndex[0]]}}:{{timeArr[1][timeAIndex[1]]}}</view>
           </picker>
         </view>
         <text class="weui-cell__bd">至</text>
         <view class="weui-cell__ft">
-          <picker mode="multiSelector" value="{{timeBIndex}}" range="{{timeArr}}" bindchange="bindTimeChange2" bindcolumnchange="bindTimeColChange1">
+          <picker mode="multiSelector" value="{{timeBIndex}}" range="{{timeArr}}" bindchange="bindTimeChange2"
+            bindcolumnchange="bindTimeColChange1">
             <view class="weui-input">{{timeArr[0][timeBIndex[0]]}}:{{timeArr[1][timeBIndex[1]]}}</view>
           </picker>
         </view>
@@ -60,7 +63,8 @@
     <view class="weui-cells weui-cells_after-title">
       <view class="weui-cell weui-cell_select">
         <view class="weui-cell__bd">
-          <picker mode="selector" bindchange="bindNumberChange" value="{{index}}" range="{{array}}" name='classroomNumber'>
+          <picker mode="selector" bindchange="bindNumberChange" value="{{index}}" range="{{array}}"
+            name='classroomNumber'>
             <view class="weui-select">{{array[index]}}</view>
           </picker>
         </view>
@@ -71,8 +75,9 @@
     <view class="weui-cells weui-cells_after-title">
       <view class="weui-cell weui-cell_form">
         <view class="weui-cell__bd">
-            <textarea class="weui-textarea" name="eventContent" placeholder="请输入详细活动内容" maxlength="{{maxContentLength}}" bindinput="contentInput"/>
-            <view class="weui-textarea-counter">{{contentLength}}/{{maxContentLength}}</view>
+          <textarea class="weui-textarea" name="eventContent" placeholder="请输入详细活动内容" maxlength="{{maxContentLength}}"
+            bindinput="contentInput" />
+          <view class="weui-textarea-counter">{{contentLength}}/{{maxContentLength}}</view>
           </view>
       </view>
     </view>
@@ -97,6 +102,6 @@
       </view>
     </view>
     <!-- form submit -->
-    <button class="weui-btn" type="primary" form-type="submit">提交</button>
+    <button class="weui-btn" type="primary" form-type="submit" disabled="{{!canSubmit}}">提交</button>
   </form>
 </view>

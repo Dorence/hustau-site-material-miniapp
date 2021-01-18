@@ -1,4 +1,7 @@
+// pages/progressCheck/printForm.js
+const app = getApp();
 const db = wx.cloud.database();
+const forms = db.collection(app.globalData.dbFacFormCollection);
 
 Page({
   data: {
@@ -8,10 +11,10 @@ Page({
     HEIGHT: 550
   },
 
-  onLoad: function(options) {
+  onLoad: function (options) {
     const PAGE = this;
     // console.log("options:" + options.type +' - ' + options.id);
-    db.collection("forms").where({
+    forms.where({
       _id: options.id
     }).get({
       success(e) {
@@ -26,7 +29,7 @@ Page({
   },
 
 
-  createNewImg: function(PAGE) {
+  createNewImg: function (PAGE) {
     var it = PAGE.data.progressList[0];
     // console.log('item:',it);
     let ctx = wx.createCanvasContext('formVerify');
@@ -113,10 +116,10 @@ Page({
 
   },
 
-  savePic: function() {
+  savePic: function () {
     wx.canvasToTempFilePath({
       canvasId: 'formVerify',
-      success: function(res) {
+      success: function (res) {
         // console.log(res.tempFilePath)
         wx.saveImageToPhotosAlbum({
           filePath: res.tempFilePath,
@@ -129,10 +132,10 @@ Page({
               confirmText: '好',
             })
           },
-          fail: function(res) {
+          fail: function (res) {
             console.log(res)
             wx.getSetting({
-              success: function(res) {
+              success: function (res) {
                 console.log(res.authSetting)
                 if (("scope.writePhotosAlbum" in res.authSetting) && !res.authSetting['scope.writePhotosAlbum']) {
                   console.log("auth fail")

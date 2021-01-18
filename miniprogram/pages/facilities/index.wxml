@@ -56,7 +56,7 @@
 			</navigator>
 
 			<!-- super admin -->
-			<navigator wx-if="{{isSuper}}" class="weui-cell weui-cell_access" hover-class="weui-cell_active" url="superAdmin/superAdmin">
+			<navigator wx-if="{{isSuper}}" class="weui-cell weui-cell_access" hover-class="weui-cell_active" url="admin/superAdmin">
 				<view class="weui-cell__bd">
 					<text class="cell-text">超级管理员</text>
 				</view>

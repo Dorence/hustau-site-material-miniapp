@@ -1,9 +1,9 @@
+const app = getApp();
 const db = wx.cloud.database();
 
 Page({
   data: {
     items: 0,
-    // tags: ["锦旗", "灯", "电子设备", "杂物"],
     availableItems: {},
     availableItemsGenres: [],
     // goods: [],
@@ -44,7 +44,7 @@ Page({
     // wxml中已设置navigator url
   },
 
-  onLoad: function(options) {
+  onLoad: function (options) {
     // this.getDatabase();
     this.fetchItemsData();
     if (options.extra == "selectOriginalMaterial") {
@@ -64,7 +64,7 @@ Page({
   },
 
   //导航栏跳转
-  selectMenu: function(e) {
+  selectMenu: function (e) {
     console.log(e);
     this.setData({
       toView: e.target.id
@@ -86,7 +86,7 @@ Page({
    * fetchItemsData()
    * 调用云函数获取可借用的物资信息
    */
-  fetchItemsData: function() {
+  fetchItemsData: function () {
     const PAGE = this;
     return wx.cloud.callFunction({
       name: "operateForms",
@@ -114,7 +114,9 @@ Page({
           categorizedItems[itemGenre].push(x[i])
         }
 
-        // console.log(Object.keys(categorizedItems))
+        console.log("Items", categorizedItems);
+        console.log("Genres", Object.keys(categorizedItems));
+
         PAGE.setData({
           availableItems: categorizedItems,
           availableItemsGenres: Object.keys(categorizedItems)
@@ -143,16 +145,16 @@ Page({
     });
   },
 
-  onReady: function() {
+  onReady: function () {
     // 页面渲染完成
   },
-  onShow: function() {
+  onShow: function () {
     // 页面显示
   },
-  onHide: function() {
+  onHide: function () {
     // 页面隐藏
   },
-  onUnload: function() {
+  onUnload: function () {
     // 页面关闭
   }
 })

@@ -13,7 +13,7 @@ Page({
    * onLoad()
    * 页面加载事件
    */
-  onLoad: function(options) {
+  onLoad: function (options) {
     // check url get
     if (this.getUrl(options) === false) {
       wx.showToast({
@@ -38,15 +38,14 @@ Page({
         //console.log('fetch formsForMaterials for approval');
         this.fetchMatData();
         return;
-      }
-      else if (options.type === 'facilities') {
+      } else if (options.type === 'facilities') {
         this.fetchFacData();
-        return;}
-      else if (options.type === 'newMaterials') {
+        return;
+      } else if (options.type === 'newMaterials') {
         // console.log('TODO: add new materials')
         this.fetchNewMatData();
-        return;}
-      else {
+        return;
+      } else {
         console.error('[listApproval] Missing parameters')
       }
     }
@@ -55,7 +54,7 @@ Page({
    * getUrl()
    * @param {Object} options 传入的get对象(options)
    */
-  getUrl: function(options) {
+  getUrl: function (options) {
     const last = (day) => {
       const d = new Date();
       return new Date(d.getFullYear(), d.getMonth(), d.getDate() - day);
@@ -85,20 +84,20 @@ Page({
   /**
    * 用户下拉动作刷新
    */
-  onPullDownRefresh: function() {
+  onPullDownRefresh: function () {
     this.fetchFacData().then(wx.stopPullDownRefresh);
   },
   /**
    * fetchFacData()
    * 调用云函数获取场地借用审批
    */
-  fetchFacData: function() {
+  fetchFacData: function () {
     const that = this;
     return wx.cloud.callFunction({
       name: "operateForms",
       data: {
         caller: "getApprList",
-        collection: "forms",
+        collection: app.globalData.dbFacFormCollection,
         filter: this.data.filter,
         operate: "read"
       }
@@ -153,14 +152,14 @@ Page({
    * fetchMatData()
    * 调用云函数获取物资借用审批
    */
-  fetchMatData: function() {
+  fetchMatData: function () {
     const that = this;
     return wx.cloud.callFunction({
       name: "operateForms",
       data: {
         caller: "getApprovalList",
         collection: "formsForMaterials",
-		    filter: that.data.filter,	
+        filter: that.data.filter,
         operate: "read"
       }
     }).then(res => {
@@ -172,9 +171,10 @@ Page({
 
       let x = res.result.data;
       if (x.length) {
-        for (let i = 0; i < x.length; i++)
-          {x[i].eventTime1 = app._toDateStr(new Date(x[i].eventTime1));
-          x[i].eventTime2 = app._toDateStr(new Date(x[i].eventTime2));}          
+        for (let i = 0; i < x.length; i++) {
+          x[i].eventTime1 = app._toDateStr(new Date(x[i].eventTime1));
+          x[i].eventTime2 = app._toDateStr(new Date(x[i].eventTime2));
+        }
         that.setData({
           apprList: x,
           flagGet: x.length ? 2 : 0
@@ -195,14 +195,14 @@ Page({
    * fetchNewMatData()
    * 调用云函数获取物资借用审批
    */
-  fetchNewMatData: function() {
+  fetchNewMatData: function () {
     const that = this;
     return wx.cloud.callFunction({
       name: "operateForms",
       data: {
         caller: "getApprovalList",
         collection: "addNewMaterials",
-		    filter: that.data.filter,	
+        filter: that.data.filter,
         operate: "read"
       }
     }).then(res => {

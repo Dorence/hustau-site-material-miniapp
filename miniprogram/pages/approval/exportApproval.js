@@ -2,6 +2,7 @@
 const app = getApp();
 const db = wx.cloud.database();
 const fs = wx.getFileSystemManager();
+const forms = db.collection(app.globalData.dbFacFormCollection);
 
 Page({
   /**
@@ -18,11 +19,11 @@ Page({
   /**
    * 生命周期函数--监听页面加载
    */
-  onLoad: function(options) {},
+  onLoad: function (options) {},
   /**
    * startDate picker 改变的函数
    */
-  bindStartDateChange: function(e) {
+  bindStartDateChange: function (e) {
     console.log("[bindStartDateChange]", e.detail.value);
     if (this.data.endDate < e.detail.value) {
       this.setData({
@@ -38,7 +39,7 @@ Page({
   /**
    * endDate picker 改变的函数
    */
-  bindEndDateChange: function(e) {
+  bindEndDateChange: function (e) {
     console.log("[bindEndDateChange]", e.detail.value);
     if (this.data.startDate <= e.detail.value) {
       this.setData({
@@ -49,10 +50,10 @@ Page({
   /**
    * submit
    */
-  submit: function(e) {
+  submit: function (e) {
     const formData = e.detail.value;
     const that = this;
-    db.collection("forms").where({
+    forms.where({
       exam: 3,
       submitDate: db.command.gte(new Date(formData.startDate))
         .and(db.command.lte(new Date(formData.endDate)))
@@ -72,7 +73,7 @@ Page({
   /**
    * 按下'导出'按钮, 调用云函数生成文件、临时链接、本地文件, 并打开文件
    */
-  tapExport: function() {
+  tapExport: function () {
     const that = this;
     wx.cloud.callFunction({
       name: "exportXlsx",
@@ -112,7 +113,7 @@ Page({
    * 将获取到的临时文件URL转换为本地文件并保存、重命名、打开
    * TODO: 无法保存到用户存储空间，只能存于微信内部空间，最好能任意保存
    */
-  saveAndOpenXlxs: function(fPath) {
+  saveAndOpenXlxs: function (fPath) {
     const that = this;
     wx.saveFile({
       tempFilePath: fPath,
@@ -129,7 +130,7 @@ Page({
         // open document
         wx.openDocument({
           filePath: newPath,
-          success: function(res) {
+          success: function (res) {
             console.log("[openDocument]打开文档成功", res);
           },
           fail: console.error,
