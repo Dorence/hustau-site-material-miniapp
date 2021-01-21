@@ -3,8 +3,10 @@
 
 <view class="page">
 	<!-- userinfo -->
-	<view wx:if="{{isLogin}}" class="userinfo {{touch.class}}" bindtouchstart="ListTouchStart" bindtouchmove="ListTouchMove" bindtouchend="ListTouchEnd" data-target="move-cur">
-		<button class="userinfo-avatar" open-type="getUserInfo" bindgetuserinfo="getUserInfo" style="background-image: url({{avatarUrl}})"></button>
+	<view wx:if="{{isLogin}}" class="userinfo {{touch.class}}" bindtouchstart="ListTouchStart"
+		bindtouchmove="ListTouchMove" bindtouchend="ListTouchEnd" data-target="move-cur">
+		<button class="userinfo-avatar" open-type="getUserInfo" bindgetuserinfo="getUserInfo"
+			style="background-image: url({{avatarUrl}})"></button>
 		<view class="userinfo-nickname">
 			{{isAdmin ? name : nickName}}
 		</view>
@@ -30,25 +32,32 @@
 		<view class="weui-panel__bd weui-cells weui-cells_in-small-appmsg" style="padding-bottom: 0;">
 
 			<!-- begin for -->
-			<view class="weui-cell weui-cell_access" hover-class="weui-cell_active" wx:for="{{exam}}" wx:for-index="i" wx:for-item="it" wx:key="id" bindtap="navToApproval" data-idx="{{i}}" data-urlget="flag={{i}}&expireSubmit=30">
+			<view class="weui-cell weui-cell_access" hover-class="weui-cell_active" wx:for="{{exam}}" wx:for-index="i"
+				wx:for-item="it" wx:key="id" bindtap="navToApproval" data-idx="{{i}}"
+				data-urlget="flag={{i}}&expireSubmit=30">
 				<view class="weui-cell__bd">
 					<text class="cell-text">{{it.text}}</text>
-					<view wx:if="{{it.num === null}}" class="weui-badge" style="margin-left: 5px;background-color: #576b95;">加载中</view>
-					<view wx:elif="{{i > 0}}" class="weui-badge" style="margin-left: 5px;background-color: #576b95;">{{it.num}}</view>
+					<view wx:if="{{it.num === null}}" class="weui-badge"
+						style="margin-left: 5px;background-color: #576b95;">加载中</view>
+					<view wx:elif="{{i > 0}}" class="weui-badge" style="margin-left: 5px;background-color: #576b95;">
+						{{it.num}}</view>
 					<view wx:elif="{{it.num}}" class="weui-badge" style="margin-left: 5px;">{{it.num}}</view>
-					<view wx:elif="{{it.num === 0}}" class="weui-badge" style="margin-left: 5px;background-color: #576b95;">全部完成</view>
+					<view wx:elif="{{it.num === 0}}" class="weui-badge"
+						style="margin-left: 5px;background-color: #576b95;">全部完成</view>
 				</view>
 				<view class="weui-cell__ft weui-cell__ft_in-access"></view>
 			</view>
 			<!-- end for -->
 
-			<view class="weui-cell weui-cell_access" hover-class="weui-cell_active" bindtap="navToApproval" data-idx="{{3}}" data-urlget="expireSubmit=366">
+			<view class="weui-cell weui-cell_access" hover-class="weui-cell_active" bindtap="navToApproval"
+				data-idx="{{3}}" data-urlget="expireSubmit=366">
 				<view class="weui-cell__bd">
 					<text class="cell-text">所有审批</text>
 				</view>
 				<view class="weui-cell__ft weui-cell__ft_in-access"></view>
 			</view>
-			<navigator class="weui-cell weui-cell_access" hover-class="weui-cell_active" url="../approval/exportApproval">
+			<navigator class="weui-cell weui-cell_access" hover-class="weui-cell_active"
+				url="../approval/exportApproval">
 				<view class="weui-cell__bd">
 					<text class="cell-text">审批导出</text>
 				</view>
@@ -56,7 +65,8 @@
 			</navigator>
 
 			<!-- super admin -->
-			<navigator wx-if="{{isSuper}}" class="weui-cell weui-cell_access" hover-class="weui-cell_active" url="admin/superAdmin">
+			<navigator wx-if="{{isSuper}}" class="weui-cell weui-cell_access" hover-class="weui-cell_active"
+				url="admin/superAdmin">
 				<view class="weui-cell__bd">
 					<text class="cell-text">超级管理员</text>
 				</view>

@@ -1,4 +1,4 @@
-/* /pages/facilities/borrowClassroom.wxss */
+/* pages/facilities/borrow/form.wxss */
 @import "../../../assets/weui.wxss";
 
 .page {
@@ -16,4 +16,3 @@
 .weui-textarea {
   height: 7.2em;
 }
-

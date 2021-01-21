@@ -1,4 +1,4 @@
-<!--miniprogram/pages/materials/returnThings.wxml-->
+<!-- pages/materials/returnThings.wxml -->
 <view class="page">
   <view class="page__hd">
     <view class="page__title">归还物资</view>
@@ -11,18 +11,14 @@
         <view class="weui-cell__bd">
           <view class="weui-label">物资名称</view>
         </view>
-        <view class="weui-cell__ft">
-          <input class="weui-input" name="itemName" value="{{itemToReturn.itemName}}" disabled="{{true}}" />
-        </view>
+        <view class="weui-cell__ft">{{retItem.itemName}}</view>
       </view>
 
       <view class="weui-cell weui-cell_input">
         <view class="weui-cell__bd">
           <view class="weui-label">借用人</view>
         </view>
-        <view class="weui-cell__ft">
-          <input class="weui-input" name="name" value= "{{itemToReturn.name}}" disabled="{{true}}" />
-        </view>
+        <view class="weui-cell__ft">{{retItem.name}}</view>
       </view>
 
       <view class="weui-cell weui-cell_input">
@@ -30,15 +26,19 @@
           <view class="weui-label">归还物资数量</view>
         </view>
         <view class="weui-cell__ft">
-          <input class="weui-input" name="returnQuantity" type="number" placeholder="" style="color: #000" /> 
+          <input class="weui-input" name="returnQuantity" type="number" placeholder="{{retItem.quantity}}"
+            style="color: #000" />
         </view>
       </view>
 
-      <view class="weui-cell weui-cell_input" style="padding-right: 0;">
-        <view class="weui-cell__hd">归还日期</view>
-        <view class="weui-cell__bd" style="margin-left: 16px;">
-          <picker mode="date" value="{{date}}" start="2019-01-01" end="2199-12-31" bindchange="bindDateChange" name="returnTime">
-            <view class="weui-select">{{date}}</view>
+      <view class="weui-cell weui-cell_input">
+        <view class="weui-cell__bd">
+          <view class="weui-label">归还日期</view>
+        </view>
+        <view class="weui-cell__ft">
+          <picker mode="date" value="{{date}}" start="{{retItem.eventTime1}}" end="{{endDate}}"
+            bindchange="bindDateChange" name="returnTime">
+            <view class="weui-select" style="border-right: none;">{{date}}</view>
           </picker>
         </view>
       </view>
@@ -49,8 +49,9 @@
     <view class="weui-cells weui-cells_after-title">
       <view class="weui-cell weui-cell_form">
         <view class="weui-cell__bd">
-            <textarea class="weui-textarea" name="returnStatus" placeholder="请描述物资使用状况（如是否损坏、缺失等）" maxlength="{{maxContentLength}}" bindinput="contentInput"/>
-            <view class="weui-textarea-counter">{{contentLength}}/{{maxContentLength}}</view>
+          <textarea class="weui-textarea" name="returnStatus" placeholder="请描述物资使用状况（如是否损坏、缺失等）"
+            maxlength="{{maxContentLength}}" bindinput="contentInput" />
+          <view class="weui-textarea-counter">{{contentLength}}/{{maxContentLength}}</view>
           </view>
       </view>
     </view>

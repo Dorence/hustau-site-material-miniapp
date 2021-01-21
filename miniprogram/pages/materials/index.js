@@ -210,8 +210,13 @@ Page({
           success: function () {
             console.log("redDOT!")
           }
-        })
-      else console.log('no need for reddot')
+        });
+      else {
+        console.log('no need for reddot')
+        wx.hideTabBarRedDot({
+          index: 1
+        });
+      }
     })
   },
 
@@ -230,7 +235,7 @@ Page({
   onShareAppMessage(res) {
     return {
       title: app.globalData.appFullName,
-      path: "/pages/materials/materialsIndex"
+      path: "/pages/materials/index"
     }
   },
 
@@ -242,10 +247,10 @@ Page({
       .then(() => {
         wx.stopPullDownRefresh({
           complete() {
-            console.log("[onPullDownRefresh] Finish refreshing.");
+            console.log("[onPullDownRefresh] Finish refresh.");
           }
         });
         return true;
       });
-  },
+  }
 })

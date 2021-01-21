@@ -1,7 +1,8 @@
 {
   "pages": [
-    "pages/facilities/index",
     "pages/materials/index",
+    "pages/facilities/index",
+
     "pages/approval/exportApproval",
     "pages/approval/listApproval",
     "pages/approval/viewApproval",
