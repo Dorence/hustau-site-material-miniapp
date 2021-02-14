@@ -13,7 +13,7 @@ Page({
   /**
    * 生命周期函数--监听页面加载
    */
-  onLoad: function(options) {
+  onLoad(options) {
     if (!app.loginState.isSuper) {
       wx.switchTab({
         url: "../index"
@@ -61,7 +61,7 @@ Page({
                 name: "operateForms",
                 data: {
                   caller: "superRemoveUser",
-                  collection: "adminInfo",
+                  collection: app.globalData.dbAdminCollection,
                   operate: "remove",
                   filter: {
                     openid: user.openid
@@ -123,7 +123,7 @@ Page({
       user.key = getRandKey(user.token);
       user.isAdmin = true;
       console.info("key", user.key);
-      this.cloudSetUserlist(function() {
+      this.cloudSetUserlist(function () {
         // render QR code
         QRCode.init("canvas", {
           text: user.key,
@@ -175,7 +175,7 @@ Page({
         name: "operateForms",
         data: {
           caller: "superReadUser",
-          collection: "adminInfo",
+          collection: app.globalData.dbAdminCollection,
           operate: "read",
           filter: {
             openid: this.data.openid
@@ -194,7 +194,7 @@ Page({
             name: "operateForms",
             data: {
               caller: "superUpdateUser",
-              collection: "adminInfo",
+              collection: app.globalData.dbAdminCollection,
               docID: dat._id,
               isDoc: true,
               operate: "update",

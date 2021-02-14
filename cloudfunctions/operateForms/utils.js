@@ -1,11 +1,11 @@
-(function() {
+(function () {
   "use strict";
   let U = {};
-  U.dateReg = /2\d{3}-(0\d|1[0-2])-([0-2]\d|3[01])/;
+  U.dateReg = /^2\d{3}-(0\d|1[0-2])-([0-2]\d|3[01])$/;
   U.maxExamNumber = 7;
 
   U.isArray = (obj) => {
-    return obj && typeof obj === "object" && Array === obj.constructor;
+    return Array.isArray(obj);
   };
 
   U.isString = (str) => {
@@ -50,10 +50,54 @@
   }
 
   /** error msg */
-  U.EMsg = function(msg = "") {
+  U.EMsg = function (msg = "") {
     this.err = true;
     this.errMsg = msg;
   };
 
+  /**
+   * 返回填充至指定长度的字符串
+   * @param {any} data 
+   * @param {Number} len 
+   * @param {String} padChar 填充的字符
+   * @param {Boolean} fromEnd
+   */
+  U.paddingString = (data, len, padChar = "0", fromEnd = false) => {
+    data = data.toString();
+    while (data.length < len) {
+      if (fromEnd) data += padChar;
+      else data = padChar + data;
+    }
+    return data;
+  };
+
+  /**
+   * yyyyQQQQnnnnn
+   * yyyy = 年份, 对应学期（1,2月算前一年）
+   * QQQQ = Spri | Fall
+   * nnnnn = 编号, 起始 00001
+   * @param {String} formid 此前的 formid
+   */
+  U.genFormid = (formid) => {
+    formid = formid.toString();
+    let prefix;
+    let t = new Date();
+    // @note getMonth() => 0:Jan, 1:Feb, ... , 11:Dec
+    if (t.getMonth() < 2)
+      prefix = `${t.getFullYear() - 1}Fall`; // Jan, Feb
+    else if (t.getMonth() < 8)
+      prefix = `${t.getFullYear()}Spri`; // Mar - Jun
+    else
+      prefix = `${t.getFullYear()}Fall`; // Aug - Dec
+
+    let newFormNum = 1;
+    if (formid.substring(0, 8) === prefix)
+      newFormNum = Number(formid.substring(8)) + 1;
+    let newID = prefix + U.paddingString(newFormNum, 5);
+
+    console.log("[Previous formid]", formid, "[newID]", newID);
+    return newID;
+  }
+
   module.exports = U;
-}).call(this);
+})(this);

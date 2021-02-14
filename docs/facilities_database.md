@@ -3,8 +3,8 @@
 **ID String** => `_id`, `openid` 等字符串的正则格式为 
 ```javascript
     [0-9A-Za-z_-]{n}
-    // _id: n= 16 or 32
-    // openid: n= 28
+    // _id: n = 16 or 32
+    // openid: n = 28
 ```
 
 ## 1. forms
@@ -57,12 +57,11 @@ Name | Description
 
 ## 2. adminInfo
 
-Field   | Type    | Description
--------:| ------- | ---------------------------------------------------
-openid  | String  | 微信公开id, 用于区别用户
-isAdmin | Boolean | 是否有管理员权限, 必填
-isSuper | Boolean | 是否有超级管理员权限, 选填
-name    | String  | 用户名称, 开发者必须加后缀 `[Dev]` 或 `[Rel]` 以区分
-tel     | String  | 用户手机号, 备用
-
-设置 `isAdmin` 字段的原因是秘书部的审批为值班制, 流动性大, 值班结束后只需将其置为
+Field       | Type    | Description
+-----------:| ------- | ---------------------------------------------------
+openid      | String  | 微信公开id, 用于区别用户
+isAdmin     | Boolean | 是否有管理员权限, 必填
+isSuper     | Boolean | 是否有超级管理员权限, 选填
+name        | String  | 用户名称, 开发者必须加后缀 `[Dev]` 或 `[Rel]` 以区分
+showFacAppr | Boolean | 是否在申请时可被选为提醒人, 选填
+tel         | String  | 用户手机号, 备用

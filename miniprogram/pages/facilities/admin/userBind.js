@@ -10,7 +10,7 @@ Page({
   /**
    * 生命周期函数--监听页面加载
    */
-  onLoad: function(options) {
+  onLoad(options) {
     console.log(options);
     this.setData({
       scanKey: options.code,
@@ -43,7 +43,7 @@ Page({
       name: "operateForms",
       data: {
         caller: "bindUser",
-        collection: "adminInfo",
+        collection: app.globalData.dbAdminCollection,
         operate: "bindUser",
         filter: {
           superOpenid: this.data.keys[0],
