@@ -108,7 +108,7 @@ Page({
       itemId: this.data.itemId,
       itemName: this.data.itemName,
       quantity: data.quantity,
-      _openid: getApp().loginState.openid
+      _openid: app.loginState.openid
     };
   },
 

@@ -37,8 +37,9 @@ Page({
       class: ""
     }
   },
+
   /**
-   * 加载页面
+   * 监听页面加载
    */
   onLoad() {
     this.checkLogin();
@@ -51,18 +52,17 @@ Page({
   },
 
   /** 
-   * 下拉刷新
+   * 监听用户下拉刷新动作
    */
   onPullDownRefresh() {
-    Promise.all([this.checkLogin(), this.getUserInfo()])
-      .then(() => {
-        wx.stopPullDownRefresh({
-          complete() {
-            console.log("[onPullDownRefresh] Finish.");
-          }
-        });
-        return true;
+    Promise.all([this.checkLogin(), this.getUserInfo()]).then(() => {
+      wx.stopPullDownRefresh({
+        complete() {
+          console.log("[onPullDownRefresh] finish");
+        }
       });
+      return true;
+    });
   },
 
   /**
@@ -72,23 +72,11 @@ Page({
   onShareAppMessage(res) {
     return {
       title: app.globalData.appFullName,
-      path: "/pages/facilities/index"
+      path: app.globalData.facIndexPath
     }
   },
 
-  /** 
-   * 点击登录按钮
-   */
-  userLogin() {
-    if (app.loginState.isLogin === false) {
-      wx.login({
-        success: this.getUserInfo
-      });
-      this.callCloudLogin(true);
-    }
-  },
-
-  /** 
+  /**
    * 检查是否有授权并获取 userInfo 
    */
   getUserInfo() {
@@ -98,9 +86,9 @@ Page({
         if (res.authSetting["scope.userInfo"]) {
           // 已授权,可以直接调用 getUserInfo
           wx.getUserInfo({
-            success(r) {
-              console.log("[getUserInfo] success.");
-              that.setData(r.userInfo);
+            success(res) {
+              console.log("[getUserInfo] seccess", res);
+              that.setData(res.userInfo);
             }
           });
         } else {
@@ -108,6 +96,18 @@ Page({
         }
       }
     });
+  },
+
+  /** 
+   * 登录按钮回调
+   */
+  userLogin() {
+    if (app.loginState.isLogin === false) {
+      wx.login({
+        success: this.getUserInfo
+      });
+      this.callCloudLogin(true);
+    }
   },
 
   /** 链接至 listApproval */
@@ -144,7 +144,9 @@ Page({
     return Promise.all(arr);
   },
 
-  /** 检查用户登录状态 */
+  /** 
+   * 检查用户登录状态
+   */
   checkLogin() {
     const that = this;
     wx.checkSession({

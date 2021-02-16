@@ -48,47 +48,43 @@ function fetchDB(PAGE) {
     }).catch(err => {
       console.error("[fetchDB]failed", err);
     });
-  } else if (PAGE.data.type === 'newMaterials') {
-    console.log('fetch forms of newMaterials')
+  } else if (PAGE.data.type === "additem") {
     return wx.cloud.callFunction({
       name: "operateForms",
       data: {
-        caller: "getAppr",
-        collection: "addNewMaterials",
+        caller: "getMatAddItemAppr",
+        collection: app.globalData.dbMatAddItemCollection,
         docID: PAGE.data.id,
         isDoc: true,
         operate: "read"
       }
     }).then(res => {
-      console.log("[fetchDB]res", res);
+      console.log("[fetchDB]res ", res);
       if (res.result.err) {
-        console.error("[ERROR]", res.result.errMsg);
+        console.error("[error]", res.result.errMsg);
         return;
       }
       let x = res.result.data;
-      x.submitDate = app._toDateStr(x.submitDate);
+
+      x.submitDate = app._toDateStr(new Date(x.submitDate));
+
+      if (!x.check)
+        x.check = {};
+      if (x.exam === 0)
+        x.check.approver = app.loginState.name;
 
       PAGE.setData({
-        appr: x || {},
-        "appr.check.approver": app.loginState.name
+        appr: x,
+        canSubmit: true
       });
 
-
-      if (x.check && x.check.comment) {
+      if (x.check.hasOwnProperty("comment")) {
         PAGE.setData({
-          commentLength: x.check.comment.length
+          borrowCommentLength: x.check.comment.length
         });
       }
-      // if (!x.check || !x.check.approver) {
-      //   PAGE.setData({
-      //     "appr.check.approver": app.loginState.name
-      //   });
-      // }
-      // if (!x.isOriginalMaterials && x.genre) {
-      //   PAGE.setData({
-      //     genreIndex: PAGE.data.genreLetters.indexOf(x.genre)
-      //   });
-      // } // set genre in genre picker if it is new materials 
+
+      return PAGE.fetchItem(x.itemDoc);
     }).catch(err => {
       console.error("[fetchDB]failed", err);
     });
@@ -507,9 +503,9 @@ Page({
         caller: "getItemInfo",
         collection: app.globalData.dbMatItemsCollection,
         docID: itemDoc,
-        field: {
-          quantity: true
-        },
+        // field: {
+        //   quantity: true
+        // },
         isDoc: true,
         operate: "read"
       }

@@ -10,7 +10,7 @@
         <view class="weui-cell__bd">
           <view class="weui-label">物资名称</view>
         </view>
-        <view class="weui-cell__ft">{{retItem.itemName}}</view>
+        <view class="weui-cell__ft weui-input">{{retItem.itemName}}</view>
       </view>
 
       <view class="weui-cell weui-cell_input">

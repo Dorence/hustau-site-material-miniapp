@@ -147,14 +147,11 @@
           </view>
           <view wx:elif="{{it.exam === 4}}" class="weui-form-preview__ft">
             <navigator class="weui-form-preview__btn weui-form-preview__btn_primary"
-              hover-class="weui-form-preview__btn_active" url="../materials/returnThings?id={{it._id}}">
-              去归还</navigator>
+              hover-class="weui-form-preview__btn_active" url="../materials/borrow/return?id={{it._id}}">去归还</navigator>
           </view>
         </view>
 
-        <view wx:else>
-          <view class="weui-article__h1">类型错误</view>
-        </view>
+        <view wx:else class="weui-article__h1">类型错误</view>
       </view>
       <!-- end wx:for -->
     </block>

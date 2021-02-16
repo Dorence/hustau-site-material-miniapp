@@ -2,6 +2,24 @@
     "use strict";
     const CFG = require("./config.js");
 
+    // limit of keywords
+    const CHSTR_LEN = 32; // maximum length of character string
+    const NAME_LEN = 20; // maximum length of name
+    const PHONE_LEN = 17; // maximum length of phone number
+    const PHRASE_LEN = 5; // maximum length of phrase
+    const THING_LEN = 20; // maximum length of thing
+
+    /**
+     * 限制字符串长度且非空
+     * @param {any} str 待处理字符串
+     * @param {Number} len 最长长度
+     * @param {String} emptyVal 空字符串时返回值
+     */
+    function limitStr(str, len = THING_LEN, emptyVal = "无") {
+        str = str.toString().substr(0, len);
+        return str.length ? str : emptyVal;
+    }
+
     /**
      * facApprResult
      * 申请类型 {{thing5.DATA}}
@@ -23,19 +41,19 @@
                 touser: openid,
                 data: {
                     thing5: {
-                        value: context.thing5.substr(0, 20)
+                        value: limitStr(context.thing5, THING_LEN)
                     },
                     thing6: {
-                        value: context.thing6.substr(0, 20)
+                        value: limitStr(context.thing6, THING_LEN)
                     },
                     phrase1: {
-                        value: context.phrase1.substr(0, 5)
+                        value: limitStr(context.phrase1, PHRASE_LEN)
                     },
                     thing11: {
-                        value: context.thing11.substr(0, 20)
+                        value: limitStr(context.thing11, THING_LEN)
                     },
                     character_string12: {
-                        value: context.character_string12.substr(0, 32)
+                        value: limitStr(context.character_string12, CHSTR_LEN)
                     }
                 }
             });
@@ -65,19 +83,19 @@
                 touser: openid,
                 data: {
                     character_string1: {
-                        value: context.character_string1.substr(0, 32)
+                        value: limitStr(context.character_string1, CHSTR_LEN)
                     },
                     thing2: {
-                        value: context.thing2.substr(0, 20)
+                        value: limitStr(context.thing2, THING_LEN)
                     },
                     name4: {
-                        value: context.name4.substr(0, 20)
+                        value: limitStr(context.name4, NAME_LEN)
                     },
                     phone_number3: {
-                        value: context.phone_number3.substr(0, 17)
+                        value: limitStr(context.phone_number3, PHONE_LEN)
                     },
                     thing5: {
-                        value: context.thing5.substr(0, 20)
+                        value: limitStr(context.thing5, THING_LEN)
                     }
                 }
             });

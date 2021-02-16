@@ -242,10 +242,24 @@ async function addMain(event) {
       });
       // end newBorrowFac
 
+    case "newAddItem":
+      event.add.submitDate = db.serverDate();
+
+      result = await c.orderBy("formid", "desc").limit(2).field({
+        formid: true
+      }).get();
+      // console.log("[result]", result);
+      event.add.formid = utils.genFormid(result.data[0] ? result.data[0].formid : "");
+
+      console.log("[event.add]", event.add);
+      return await c.add({
+        data: event.add
+      });
+      // end newAddItem
+
     default:
       return new utils.EMsg("Caller error.");
   }
-
 }
 
 /**

@@ -1,8 +1,0 @@
-/* pages/materials/returnThings.wxss */
-@import "../facilities/borrow/form.wxss";
-
-.weui-cell_input .weui-label {
-  height: 2.58823529em;
-  min-height: 2.58823529em;
-  line-height: 2.58823529em;
-}

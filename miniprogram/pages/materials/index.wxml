@@ -22,12 +22,12 @@
 
 	<!-- 借用审批 -->
 	<view wx:if="{{isLogin && isAdmin}}" class="weui-panel">
-		<view class="weui-panel__hd">借用审批</view>
+		<view class="weui-panel__hd">借用物资审批</view>
 		<view class="weui-panel__bd weui-cells weui-cells_in-small-appmsg" style="padding-bottom: 0;">
 			<!-- begin for -->
-			<view class="weui-cell weui-cell_access" hover-class="weui-cell_active" wx:for="{{exam}}" wx:for-index="i"
-				wx:for-item="it" wx:key="_" bindtap="navToApproval" data-idx="{{i}}"
-				data-urlget="type=borrow&flag={{i}}&expireSubmit=30">
+			<view class="weui-cell weui-cell_access" hover-class="weui-cell_active" wx:for="{{examBorrow}}"
+				wx:for-index="i" wx:for-item="it" wx:key="text" bindtap="navToApproval" data-arr="examBorrow" data-flag="{{i}}"
+				data-urlget="type=borrow&expireSubmit=30">
 				<view class="weui-cell__bd">
 					<text class="cell-text">{{it.text}}</text>
 					<view wx:if="{{it.num === null}}" class="weui-badge badge-blue">加载中</view>
@@ -42,37 +42,29 @@
 			<!-- end for -->
 		</view>
 	</view>
-	<!-- end of panel-->
 
+	<!-- 新增物资审批 -->
 	<view wx:if="{{isLogin && isAdmin}}" class="weui-panel">
 		<view class="weui-panel__hd">新增物资审批</view>
-		<view class="weui-panel__bd">
-			<view class="weui-media-box weui-media-box_small-appmsg">
-				<view class="weui-cells weui-cells_in-small-appmsg">
-					<view class="weui-cell weui-cell_access" hover-class="weui-cell_active"
-						wx:for="{{examNewMaterials}}" wx:for-index="i" wx:for-item="it" wx:key="id"
-						bindtap="navToApproval" data-idx="{{i}}"
-						data-urlget="flag={{i}}&expireSubmit=30&type=newMaterials">
-						<view class="weui-cell__bd">
-							<view style="display: inline-block; vertical-align: middle">{{it.text}}
-							</view>
-							<view wx:if="{{it.num !== 0 & i ==0 }}" class="weui-badge" style="margin-left: 5px;">
-								{{it.num}}</view>
-							<view wx:elif="{{it.num == 0 & i ==0 }}" class="weui-badge"
-								style="margin-left: 5px;background-color: #576b95;">全部完成</view>
-							<view wx:elif="{{i != 0}}" class="weui-badge"
-								style="margin-left: 5px;background-color: #576b95;">{{it.num}}</view>
-						</view>
-						<view class="weui-cell__ft weui-cell__ft_in-access"></view>
-					</view>
-					<!-- end for -->
+		<view class="weui-panel__bd weui-cells weui-cells_in-small-appmsg" style="padding-bottom: 0;">
+			<!-- begin for -->
+			<view class="weui-cell weui-cell_access" hover-class="weui-cell_active" wx:for="{{examAdd}}"
+				wx:for-index="i" wx:for-item="it" wx:key="text" bindtap="navToApproval" data-arr="examAdd" data-flag="{{i}}"
+				data-urlget="type=additem&expireSubmit=30">
+				<view class="weui-cell__bd">
+					<text class="cell-text">{{it.text}}</text>
+					<view wx:if="{{it.num === null}}" class="weui-badge badge-blue">加载中</view>
+					<block wx:elif="{{i === 0}}">
+						<view wx:if="{{it.num > 0}}" class="weui-badge badge-red">{{it.num}}</view>
+						<view wx:else class="weui-badge badge-blue">全部完成</view>
+					</block>
+					<view wx:else class="weui-badge badge-blue">{{it.num}}</view>
 				</view>
+				<view class="weui-cell__ft weui-cell__ft_in-access"></view>
 			</view>
-
-
+			<!-- end for -->
 		</view>
 	</view>
-	<!-- end of panel-->
 
 	<!-- footer -->
 	<template is="foot" />

@@ -99,7 +99,7 @@ Page({
         tel: data.phone
       },
       exam: 0,
-      _openid: getApp().loginState.openid
+      _openid: app.loginState.openid
     };
   },
 
@@ -285,34 +285,33 @@ Page({
   },
 
   /**
-   * contentInput()
    * 输入活动内容时的响应, 显示字数
    * @param {Object} e 传入的事件, e.detail.value为文本表单的内容
    */
-  contentInput: function (e) {
+  contentInput(e) {
     this.setData({
       contentLength: e.detail.value.length
     })
   },
 
-  fetchAdminList() {
-    const that = this;
-    return wx.cloud.callFunction({
-      name: "operateForms",
-      data: {
-        caller: "getApprAdminList",
-        collection: app.globalData.dbAdminCollection,
-        field: {
-          name: true,
-          openid: true
-        },
-        filter: {
-          isAdmin: true,
-          showFacAppr: true
-        },
-        operate: "read"
-      }
-    }).then(res => {
+  async fetchAdminList() {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: "operateForms",
+        data: {
+          caller: "getApprAdminList",
+          collection: app.globalData.dbAdminCollection,
+          field: {
+            name: true,
+            openid: true
+          },
+          filter: {
+            isAdmin: true,
+            showFacAppr: true
+          },
+          operate: "read"
+        }
+      });
       console.log("[fetchAdminList]res", res);
       if (res.result.err) {
         console.error(res.result.errMsg);
@@ -321,14 +320,13 @@ Page({
 
       let data = res.result.data;
       data.sort((x, y) => x.name < y.name ? -1 : 1);
-      that.setData({
+      this.setData({
         adminState: 1,
         adminList: data,
-        adminRange: data.map(x => x.name)
-      })
-
-    }).catch(err => {
+        adminRange: data.map(x_1 => x_1.name)
+      });
+    } catch (err) {
       console.error("[fetchAdminList]failed", err);
-    });
+    }
   }
 });
