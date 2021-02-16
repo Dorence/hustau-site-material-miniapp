@@ -33,9 +33,7 @@ function inCollections(coName) {
  * @param {Object} ft 传入的filter, 可有自定义filter, 详见各个case
  */
 function toFilter(ft) {
-  /**
-   * 检查 ft
-   */
+  /** 检查 ft */
   if (!ft || Object.keys(ft).length === 0) return false;
   let x, obj = {};
 
@@ -44,7 +42,6 @@ function toFilter(ft) {
    */
   for (let s in ft) {
     switch (s) {
-
       case "exam":
         if (utils.isArray(ft[s])) {
           x = [];
@@ -109,7 +106,7 @@ function toFilter(ft) {
     }
   } // end for
 
-  console.log("[filter]", obj);
+  // console.log("[filter]", obj);
   return Object.keys(obj).length > 0 ? obj : false;
 }
 
@@ -204,7 +201,7 @@ async function addMain(event) {
 
   switch (event.caller) {
     case "newBorrowFac":
-      event.add.submitDate = new Date();
+      event.add.submitDate = db.serverDate();
 
       result = await c.orderBy("formid", "desc").limit(2).field({
         formid: true
@@ -223,6 +220,21 @@ async function addMain(event) {
         }
         console.log("[submsg]", await submsg.facNewAppr(cloud, event.extrainfo.adminOpenid, ctx));
       }
+
+      console.log("[event.add]", event.add);
+      return await c.add({
+        data: event.add
+      });
+      // end newBorrowFac
+
+    case "newBorrowMat":
+      event.add.submitDate = db.serverDate();
+
+      result = await c.orderBy("formid", "desc").limit(2).field({
+        formid: true
+      }).get();
+      // console.log("[result]", result);
+      event.add.formid = utils.genFormid(result.data[0] ? result.data[0].formid : "");
 
       console.log("[event.add]", event.add);
       return await c.add({
@@ -276,9 +288,14 @@ async function readMain(event) {
   }
 }
 
-function toUpdateObj(event) {
+/**
+ * generate update object
+ * @param {Object} event 
+ * @param {String[]} keywords array of check keys
+ */
+function toUpdateObj(event, keywords) {
   const u = event.update;
-  console.log("[openid]", event.openid, event);
+  // console.log("[toUpdateObj]openid", event.openid);
   let o = {
     check: {
       openid: event.openid
@@ -287,10 +304,9 @@ function toUpdateObj(event) {
 
   // 检查 check
   if (u.check && Object.keys(u.check).length) {
-    if (u.check.approver) o.check.approver = u.check.approver;
-    if (u.check.comment) o.check.comment = u.check.comment;
-    if (u.check.returnApprover) o.check.returnApprover = u.check.returnApprover;
-    if (u.check.returnComment) o.check.returnComment = u.check.returnComment;
+    keywords.forEach(val => {
+      if (u.check.hasOwnProperty(val)) o.check[val] = u.check[val];
+    });
     o.check.time = db.serverDate();
   } else
     return new utils.EMsg("Error check.");
@@ -299,9 +315,19 @@ function toUpdateObj(event) {
   if (utils.isExamNum(u.exam)) o.exam = u.exam;
   else return new utils.EMsg("Error exam.");
 
+  // updateMatBorrowAppr 可能更新归还数量
+  if (event.caller === "updateMatBorrowAppr") {
+    if (u.hasOwnProperty("returnQuantity"))
+      o.returnQuantity = u.returnQuantity;
+  }
+
   // 更新历史记录
   let tmp = o.check;
   tmp.exam = o.exam;
+
+  if (o.hasOwnProperty("returnQuantity"))
+    tmp.returnQuantity = o.returnQuantity;
+
   o.checkHis = db.command.push([tmp]);
 
   console.log("[update object]", o);
@@ -340,9 +366,55 @@ async function updateMain(event) {
   // 对于不同的 caller 可有不同的操作
   let updateObj;
   switch (event.caller) {
-    case "updateAppr":
-      updateObj = toUpdateObj(event);
+    case "updateNewMatAppr":
+      updateObj = toUpdateObj(event, ["approver", "comment"]);
       if (updateObj.err) return updateObj;
+
+      /** @todo send subscribed message */
+      return await c.update(updateObj).then(res => {
+        console.log("[update]", res);
+        return {
+          err: false,
+          errMsg: res.errMsg,
+          updated: res.stats.updated
+        }
+      });
+      // end updateNewMatAppr
+
+    case "updateMatBorrowAppr": {
+      let item = event.extrainfo.itemDoc;
+      if (!utils.isIDString(item, [16, 32, 36]))
+        return new utils.EMsg("Cannot index item.");
+      item = db.collection(CFG.dbMatItemsCollection).doc(item);
+
+      updateObj = toUpdateObj(event, ["borrowApprover", "borrowComment", "returnApprover", "returnComment"]);
+      if (updateObj.err) return updateObj;
+
+      /** @todo send subscribed message */
+      switch (updateObj.data.exam) {
+        case 4: // 审核时拒绝，物资不变化
+          break;
+        case 5: // 同意后撤销，移去物资（减少）
+          await item.update({
+            data: {
+              quantity: db.command.inc(-updateObj.data.returnQuantity) // negative
+            }
+          });
+          break;
+        case 6: // 审核时同意，补回物资（增加）
+          await item.update({
+            data: {
+              quantity: db.command.inc(updateObj.data.returnQuantity) // positive
+            }
+          });
+          break;
+        case 1:
+        case 2:
+        case 3:
+          break; // 借用审核，物资不变化
+        default:
+          return new utils.EMsg("Invalid exam.");
+      }
 
       return await c.update(updateObj).then(res => {
         console.log("[update]", res);
@@ -352,10 +424,10 @@ async function updateMain(event) {
           updated: res.stats.updated
         }
       });
-      // end updateAppr
+    } // end updateMatBorrowAppr
 
     case "updateFacAppr":
-      updateObj = toUpdateObj(event);
+      updateObj = toUpdateObj(event, ["approver", "comment"]);
       if (updateObj.err) return updateObj;
 
       // send subscribed message
@@ -398,6 +470,43 @@ async function updateMain(event) {
     default:
       return new utils.EMsg("Caller error.");
   }
+}
+
+/**
+ * confirm borrow
+ * @param {Object} event 
+ */
+async function confirmBorrowMain(event) {
+  // 设置 collection
+  if (!inCollections(event.collection))
+    return new utils.EMsg("No such collection.");
+  let c = db.collection(event.collection);
+
+  if (!event.isDoc)
+    return new utils.EMsg("Must be doc.");
+  c = c.doc(event.docID);
+
+  // 借出物品
+  await db.collection(CFG.dbMatItemsCollection).doc(event.update.itemDoc)
+    .update({
+      data: {
+        quantity: db.command.inc(-event.update.quantity) // negative
+      }
+    });
+
+  return await c.update({
+    data: {
+      confirmBorrowTime: db.serverDate(),
+      exam: event.update.exam
+    }
+  }).then(res => {
+    console.log("[confirmBorrowMain]", res);
+    return {
+      err: false,
+      errMsg: res.errMsg,
+      updated: res.stats.updated
+    }
+  });
 }
 
 /**
@@ -584,6 +693,9 @@ exports.main = async (event, context) => {
       if (hasPermission(perm, event.collection)) return await updateMain(event);
       else return new utils.EMsg("Permission denied.")
       // end update
+
+    case "confirmBorrow":
+      return await confirmBorrowMain(event);
 
     case "bindUser":
       return await bindUserMain(event);

@@ -16,12 +16,15 @@
         dbAdminCollection: "adminInfo", // database for admin info
 
         // facilities
-        facIndexPath: "pages/facilities/index",
-        facRoomList: ["201", "205", "207", "208"], // available rooms
         dbFacFormCollection: "forms", // database for facilities forms
         facExamStr: ["未审批", "撤回", "未通过", "通过"],
-
+        facIndexPath: "pages/facilities/index",
+        facRoomList: ["201", "205", "207", "208"], // available rooms
+        
         // materials
+        dbMatAddItemCollection: "addNewMaterials",
+        dbMatBorrowCollection: "formsForMaterials",
+        dbMatItemsCollection: "items",
         matCategory: [
             ["服饰类", "A"],
             ["宣传类", "B"],
@@ -31,7 +34,8 @@
             ["文本类", "F"],
             ["其他", "G"],
         ],
-        matExamStr: ["未审批", "撤回", "未通过", "已借出", "待归还", "已归还"],
+        matExamStr: ["未审批", "撤回", "未通过", "允许借用", "待归还", "核销中", "已归还"],
+        matIndexPath: "pages/materials/index"
     };
 
     for (let item in config)

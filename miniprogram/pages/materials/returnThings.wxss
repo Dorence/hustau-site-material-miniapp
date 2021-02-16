@@ -1,5 +1,4 @@
 /* pages/materials/returnThings.wxss */
-@import "../../assets/weui.wxss";
 @import "../facilities/borrow/form.wxss";
 
 .weui-cell_input .weui-label {

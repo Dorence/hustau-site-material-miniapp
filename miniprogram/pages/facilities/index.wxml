@@ -26,24 +26,21 @@
 	<!-- 公告 -->
 	<rulePanel />
 
-	<!-- admin -->
+	<!-- admin approval -->
 	<view wx:if="{{isLogin && isAdmin}}" class="weui-panel">
 		<view class="weui-panel__hd">借用审批</view>
 		<view class="weui-panel__bd weui-cells weui-cells_in-small-appmsg" style="padding-bottom: 0;">
-
 			<!-- begin for -->
 			<view class="weui-cell weui-cell_access" hover-class="weui-cell_active" wx:for="{{exam}}" wx:for-index="i"
-				wx:for-item="it" wx:key="id" bindtap="navToApproval" data-idx="{{i}}"
+				wx:for-item="it" wx:key="_" bindtap="navToApproval" data-idx="{{i}}"
 				data-urlget="flag={{i}}&expireSubmit=30">
 				<view class="weui-cell__bd">
 					<text class="cell-text">{{it.text}}</text>
-					<view wx:if="{{it.num === null}}" class="weui-badge"
-						style="margin-left: 5px;background-color: #576b95;">加载中</view>
-					<view wx:elif="{{i > 0}}" class="weui-badge" style="margin-left: 5px;background-color: #576b95;">
-						{{it.num}}</view>
-					<view wx:elif="{{it.num}}" class="weui-badge" style="margin-left: 5px;">{{it.num}}</view>
-					<view wx:elif="{{it.num === 0}}" class="weui-badge"
-						style="margin-left: 5px;background-color: #576b95;">全部完成</view>
+					<view wx:if="{{it.num === null}}" class="weui-badge badge-blue">加载中</view>
+					<view wx:elif="{{i > 0}}" class="weui-badge badge-blue">{{it.num}}</view>
+					<view wx:elif="{{it.num > 0}}" class="weui-badge badge-red">{{it.num}}</view>
+					<view wx:elif="{{it.num === 0}}" class="weui-badge badge-blue">全部完成</view>
+					<view wx:else class="weui-badge badge-blue">错误</view>
 				</view>
 				<view class="weui-cell__ft weui-cell__ft_in-access"></view>
 			</view>
@@ -56,6 +53,13 @@
 				</view>
 				<view class="weui-cell__ft weui-cell__ft_in-access"></view>
 			</view>
+		</view>
+	</view>
+
+	<!-- admin utils -->
+	<view wx:if="{{isLogin && isAdmin}}" class="weui-panel">
+		<view class="weui-panel__hd">常用功能</view>
+		<view class="weui-panel__bd weui-cells weui-cells_in-small-appmsg" style="padding-bottom: 0;">
 			<navigator class="weui-cell weui-cell_access" hover-class="weui-cell_active"
 				url="../approval/exportApproval">
 				<view class="weui-cell__bd">

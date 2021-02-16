@@ -1,30 +1,45 @@
+// pages/materials/borrow/index.js
 const app = getApp();
 const db = wx.cloud.database();
 
 Page({
   data: {
-    items: 0,
     availableItems: {},
     availableItemsGenres: [],
-    // goods: [],
-    toView: 'number0',
-    scrollTop: 100,
-    // foodCounts: 0,
-    // carArray: [],
-    item: [],
-    genreToChineseName: {
-      "A": "服饰类",
-      "B": "宣传类",
-      "C": "奖品类",
-      "D": "工具类",
-      "E": "装饰类",
-      "F": "文本类",
-      "G": "其他"
-    }
+    toView: "Genre0",
+    genreToChineseName: ((v) => {
+      let o = {};
+      v.forEach(x => o[x[1]] = x[0]);
+      return o;
+    })(app.globalData.matCategory)
   },
 
-  //点击加号跳转至表单
-  navtoForm(e) {
+  /**
+   * 点击加号跳转至表单
+   */
+  onItemSelect(e) {
+    let dataset = e.currentTarget.dataset;
+    console.log("[onItemSelect]", dataset);
+    let item = this.data.availableItems[dataset.genre][dataset.idx];
+    let url = "";
+
+    switch (this.data.type) {
+      case "borrow": // 借用填表
+        url += "./form";
+        ["_id", "itemName", "itemId", "quantity"].forEach((v, i) => url += `${i?"&":"?"}${v}=${item[v]}`);
+        console.log("[onItemSelect]url", url);
+        wx.navigateTo({
+          url: url
+        });
+        break;
+      case "selectOriginalMaterial":
+        // itemName={{singleItem.itemName}}&itemId={{singleItem.itemId}}&itemDocId={{singleItem._id}}{{navBackExtraData}}
+        break;
+      default:
+        // do nothing
+    }
+    return;
+
     // var index = e.currentTarget.dataset.itemIndex;
     // var parentIndex = e.currentTarget.dataset.parentindex;
     // var name = this.data.goods[parentIndex].items[index].name;
@@ -44,10 +59,12 @@ Page({
     // wxml中已设置navigator url
   },
 
-  onLoad: function (options) {
+  onLoad(options) {
     // this.getDatabase();
+    this.setData(options);
+
     this.fetchItemsData();
-    if (options.extra == "selectOriginalMaterial") {
+    if (options.extra === "selectOriginalMaterial") {
       this.setData({
         navBackTo: options.navBack,
         selectOriginalMaterial: true
@@ -59,34 +76,22 @@ Page({
         });
 
     }
-
-    console.log('[borrowThings]', this.data)
+    console.log("[onLoad]", this.data)
   },
 
   //导航栏跳转
   selectMenu: function (e) {
-    console.log(e);
+    console.log("[selectMenu]", e);
     this.setData({
       toView: e.target.id
     })
   },
 
-  //获取数据库
-  //TODO:当物品条数高于100时，需要skip操作（get有100条的获取限制）
-  // getDatabase: function () {
-  //   const PAGE = this;
-  //   db.collection("items").get().then(e => {
-  //     PAGE.setData({
-  //       goods:e.data
-  //     })
-  //   })
-  // },
-
   /**
    * fetchItemsData()
    * 调用云函数获取可借用的物资信息
    */
-  fetchItemsData: function () {
+  fetchItemsData() {
     const PAGE = this;
     return wx.cloud.callFunction({
       name: "operateForms",
@@ -101,17 +106,17 @@ Page({
     }).then(res => {
       console.log("[fetchItemsData] res", res);
       if (res.result.err) {
-        console.log("[fetchItemsData] error", res.result.err);
+        console.error("[fetchItemsData] error", res.result.err);
         return;
       }
 
       let x = res.result.data;
       let categorizedItems = {};
       if (x.length) {
-        for (let i = 0; i < x.length; i++) {
-          let itemGenre = x[i].genre
+        for (let i in x) {
+          let itemGenre = x[i].genre;
           if (!categorizedItems[itemGenre]) categorizedItems[itemGenre] = [];
-          categorizedItems[itemGenre].push(x[i])
+          categorizedItems[itemGenre].push(x[i]);
         }
 
         console.log("Items", categorizedItems);
@@ -122,8 +127,6 @@ Page({
           availableItemsGenres: Object.keys(categorizedItems)
         });
       }
-      // console.log('categorizedItems', categorizedItems)
-      console.log(PAGE.data)
 
       //   if (x.length) {
       //     for (let i = 0; i < x.length; i++)
@@ -143,18 +146,5 @@ Page({
       // }).catch(err => {
       //   console.error("[newFetchData]failed", err);
     });
-  },
-
-  onReady: function () {
-    // 页面渲染完成
-  },
-  onShow: function () {
-    // 页面显示
-  },
-  onHide: function () {
-    // 页面隐藏
-  },
-  onUnload: function () {
-    // 页面关闭
   }
 })

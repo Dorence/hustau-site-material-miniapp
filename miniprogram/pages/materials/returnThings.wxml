@@ -4,7 +4,6 @@
     <view class="page__title">归还物资</view>
   </view>
   <form class="page__bd" bindsubmit="submit">
-    <!-- form cells-group 1 -->
     <view class="weui-cells__title">物资使用情况 </view>
     <view class="weui-cells weui-cells_after-title">
       <view class="weui-cell weui-cell_input">
@@ -16,9 +15,9 @@
 
       <view class="weui-cell weui-cell_input">
         <view class="weui-cell__bd">
-          <view class="weui-label">借用人</view>
+          <view class="weui-label">借用负责人</view>
         </view>
-        <view class="weui-cell__ft">{{retItem.name}}</view>
+        <view class="weui-cell__ft">{{retItem.info.name}}</view>
       </view>
 
       <view class="weui-cell weui-cell_input">
@@ -26,7 +25,7 @@
           <view class="weui-label">归还物资数量</view>
         </view>
         <view class="weui-cell__ft">
-          <input class="weui-input" name="returnQuantity" type="number" placeholder="{{retItem.quantity}}"
+          <input class="weui-input" name="returnQuantity" type="number" placeholder="借出：{{retItem.quantity}}"
             style="color: #000" />
         </view>
       </view>
@@ -36,8 +35,8 @@
           <view class="weui-label">归还日期</view>
         </view>
         <view class="weui-cell__ft">
-          <picker mode="date" value="{{date}}" start="{{retItem.eventTime1}}" end="{{endDate}}"
-            bindchange="bindDateChange" name="returnTime">
+          <picker mode="date" value="{{date}}" start="{{startDate}}" end="{{endDate}}"
+            bindchange="bindDateChange" name="returnDate">
             <view class="weui-select" style="border-right: none;">{{date}}</view>
           </picker>
         </view>
@@ -55,7 +54,7 @@
           </view>
       </view>
     </view>
-    <!-- form submit -->
-    <button class="weui-btn" type="primary" form-type="submit">提交</button>
+
+    <button class="weui-btn" type="primary" form-type="submit" disabled="{{retItem.exam !== 4}}">提交</button>
   </form>
 </view>

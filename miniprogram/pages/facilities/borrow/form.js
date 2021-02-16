@@ -82,7 +82,7 @@ Page({
       err: "请正确填写活动人数"
     };
 
-    if (!(/\d{11}/.test(data.phone))) return {
+    if (!/^\d{11}$/.test(data.phone)) return {
       err: "请填写正确的手机号"
     };
     return {
@@ -98,8 +98,8 @@ Page({
         responser: data["eventResponser"],
         tel: data.phone
       },
-      submitDate: new Date(),
-      exam: 0
+      exam: 0,
+      _openid: getApp().loginState.openid
     };
   },
 
@@ -179,8 +179,6 @@ Page({
       canSubmit: false
     });
 
-
-    delete formObj.submitDate;
     let data = {
       caller: "newBorrowFac",
       collection: app.globalData.dbFacFormCollection,

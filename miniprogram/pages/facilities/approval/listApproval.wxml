@@ -5,7 +5,7 @@
     <view class="page__desc">{{expire}}内的审批</view>
   </view>
   <view class="page__bd">
-    <block wx:if="{{flagGet == 1}}">
+    <block wx:if="{{flagGet === 1}}">
       <view class="weui-form-preview" wx:for="{{apprList}}" wx:for-index="i" wx:for-item="it" wx:key="id">
         <view class="weui-form-preview__hd">
           <view class="weui-form-preview__item">

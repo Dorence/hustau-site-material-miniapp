@@ -92,22 +92,39 @@ App({
 
   _genFormid(formid) {
     formid = formid.toString();
-    console.log("[Previous formid]", formid);
 
-    let prefix,
-      t = new Date();
+    let prefix;
+    let t = new Date();
     // @note getMonth() => 0:Jan, 1:Feb, ... , 11:Dec
-    if (t.getMonth() < 2)
-      prefix = `${t.getFullYear() - 1}Fall`; // Jan, Feb
-    else if (t.getMonth() < 8)
-      prefix = `${t.getFullYear()}Spri`; // Mar - Jun
-    else
-      prefix = `${t.getFullYear()}Fall`; // Aug - Dec
-
+    switch (t.getMonth()) {
+      case 0: // Jan
+        prefix = `${t.getFullYear() - 1}Fall`;
+        break;
+      case 1: // Feb
+        if (t.getDate() <= 14) prefix = `${t.getFullYear() - 1}Fall`;
+        else prefix = `${t.getFullYear()}Spri`;
+        break;
+      case 2: // Mar
+      case 3: // Apr
+      case 4: // May
+      case 5: // Jun
+      case 6: // Jul
+        prefix = `${t.getFullYear()}Spri`;
+        break;
+      case 7: // Aug
+      case 8: // Sep
+      case 9: // Oct
+      case 10: // Nov
+      case 11: // Dec
+        prefix = `${t.getFullYear()}Fall`;
+        break;
+      default:
+        prefix = "";
+        console.error("Invalid month", t, t.getMonth());
+    }
     let newFormNumber = 1;
     if (formid.substring(0, 8) === prefix)
       newFormNumber = Number(formid.substring(8)) + 1;
-    console.log("[newFormNumber]", newFormNumber);
 
     let newID = "";
     for (let i = 0; i < 5; i++) {
@@ -117,7 +134,7 @@ App({
       newFormNumber = (newFormNumber - m) / 10;
     }
     newID = prefix + newID;
-    console.log("[newID]", newID);
+    console.log("[Previous formid]", formid, "[newID]", newID);
     return newID;
   },
 
@@ -135,5 +152,22 @@ App({
         return true;
     }
     return false;
+  },
+
+  /**
+   * 长按复制
+   * @param {Object} e event handler
+   */
+  _longPressCopy(e) {
+    const v = e.currentTarget.dataset.copy;
+    console.log("[longPressCopy]", v);
+    wx.setClipboardData({
+      data: v,
+      success() {
+        wx.showToast({
+          title: "复制成功"
+        });
+      }
+    });
   }
 })

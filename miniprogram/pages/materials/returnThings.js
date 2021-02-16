@@ -8,14 +8,16 @@ Page({
    */
   data: {
     date: app._toDateStr(new Date(), true),
+    startDate: app._toDateStr(new Date(), true),
     endDate: (() => {
       let d = new Date();
       d.setDate(d.getDate() + 1);
       return app._toDateStr(d, true);
     })(),
     retItem: {},
-    maxContentLength: 300,
-    contentLength: 0
+
+    contentLength: 0,
+    maxContentLength: 300
   },
 
   /**
@@ -23,38 +25,52 @@ Page({
    */
   onLoad: function (options) {
     console.log(options);
-    if (!options.id) {
-      return;
-    }
+    if (!options.id) return;
 
-    db.collection("formsForMaterials").where({
+    db.collection(app.globalData.dbMatBorrowCollection).where({
       _id: options.id
-    }).get().then((e) => {
+    }).get().then(e => {
       // console.log(e);
-      if (e.data)
+      if (e.data) {
+        let item = e.data[0];
+        let startDate = item.eventDate1;
+        if (startDate > this.data.date)
+          startDate = this.data.date;
         this.setData({
-          retItem: e.data[0] || []
+          startDate: startDate,
+          retItem: item
         });
-      console.log("data", this.data);
+      }
     });
-
   },
 
   /**
    * 在线填表页面点击提交的函数
    */
-  submit: function (e) {
-    const formsData = e.detail.value;
-    console.log("[formsData]", formsData);
-    db.collection("formsForMaterials").doc(this.data.retItem._id).update({
+  submit(e) {
+    const form = e.detail.value;
+    console.log("[form]", form);
+
+    form.returnQuantity = Number(form.returnQuantity);
+    if (isNaN(form.returnQuantity) || form.returnQuantity < 0 || form.returnQuantity > this.data.retItem.quantity) {
+      wx.showModal({
+        title: "错误",
+        content: "请核对归还数量",
+        showCancel: false,
+        confirmText: "再去改改"
+      });
+      return false;
+    }
+
+    db.collection(app.globalData.dbMatBorrowCollection).doc(this.data.retItem._id)
+      .update({
         data: {
-          // 表示将 done 字段置为 true
-          returnQuantity: formsData.returnQuantity,
-          returnStatus: formsData.returnStatus,
-          returnTime: formsData.returnTime,
-          exam: 4
+          returnQuantity: form.returnQuantity,
+          returnStatus: form.returnStatus,
+          returnDate: form.returnDate,
+          exam: 5
         }
-      }).then((e) => {
+      }).then(e => {
         wx.showModal({
           title: "提交成功",
           content: "已提交归还申请，请关注后续审批结果",
@@ -69,61 +85,17 @@ Page({
       .catch(console.error)
   },
 
-  /**
-   * 生命周期函数--监听页面初次渲染完成
-   */
-  onReady: function () {
-
+  bindDateChange(e) {
+    this.setData({
+      date: e.detail.value
+    });
   },
 
   /**
-   * 生命周期函数--监听页面显示
-   */
-  onShow: function () {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面隐藏
-   */
-  onHide: function () {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面卸载
-   */
-  onUnload: function () {
-
-  },
-
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
-   */
-  onPullDownRefresh: function () {
-
-  },
-
-  /**
-   * 页面上拉触底事件的处理函数
-   */
-  onReachBottom: function () {
-
-  },
-
-  /**
-   * 用户点击右上角分享
-   */
-  onShareAppMessage: function () {
-
-  },
-
-  /**
-   * contentInput()
    * 输入活动内容时的响应, 显示字数
    * @param {Object} e 传入的事件, e.detail.value为文本表单的内容
    */
-  contentInput: function (e) {
+  contentInput(e) {
     this.setData({
       contentLength: e.detail.value.length
     })

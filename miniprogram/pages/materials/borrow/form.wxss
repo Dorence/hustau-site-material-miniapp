@@ -1,0 +1,2 @@
+/* pages/materials/borrow/form.wxss */
+@import "../../facilities/borrow/form.wxss";

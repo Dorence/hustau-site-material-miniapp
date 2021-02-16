@@ -20,18 +20,18 @@ Page({
     }],
     bigItems: [{
         name: "物资查询及借用",
-        url: "borrowThings",
+        url: "borrow/index?type=borrow",
         icon: "../../assets/borrowClassroom.png"
+      },
+      {
+        name: "进度查询",
+        url: "../progressCheck/progressCheck?type=materials",
+        icon: "../../assets/progressCheck.png"
       },
       {
         name: "新增仓库物资",
         url: "addThings",
         icon: "../../assets/plus.png"
-      },
-      {
-        name: "表单状态查询",
-        url: "../progressCheck/progressCheck?type=materials",
-        icon: "../../assets/progressCheck.png"
       }
     ]
   },
@@ -183,14 +183,10 @@ Page({
 
   /** 链接至 listApproval */
   navToApproval: function (e) {
-    // console.log(e);
-    const data = e.currentTarget.dataset;
-    // if (this.data.exam[data.idx].num && data.urlget.length > 0) {
-    // NOTE: DEBUG 阶段去掉了判断审批数不为零的限制
-    if (data.urlget.length > 0) {
-      console.log("navigateTo", data);
+    const dataset = e.currentTarget.dataset;
+    if (this.data.exam[dataset.idx].num && dataset.urlget.length > 0) {
       wx.navigateTo({
-        url: '../approval/listApproval?' + data.urlget
+        url: `approval/listApproval?${dataset.urlget}`
       });
     }
   },

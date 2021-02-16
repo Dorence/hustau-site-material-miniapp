@@ -3,15 +3,11 @@ const app = getApp();
 const db = wx.cloud.database();
 
 Page({
-  data: {
-    examState: [],
-    progressList: [],
-    type: ""
-  },
+  data: {},
   /**
    * 加载页面
    * @param {Object} options
-   * @param {String} options.type "facilities" | "materials"
+   * @param {String} options.type facilities|materials
    */
   onLoad(options) {
     console.log("[options]", options);
@@ -54,12 +50,15 @@ Page({
         break;
       }
       case "materials": {
-        db.collection("formsForMaterials").where({
+        db.collection(app.globalData.dbMatBorrowCollection).where({
           _openid: openid
         }).get().then(res => {
           let arr = res.data || [];
           // sort by submit time
           arr.sort((_x, _y) => _x.submitDate > _y.submitDate ? -1 : 1);
+          for (let i in arr)
+            if (arr[i].confirmBorrowTime)
+              arr[i].confirmBorrowTime = app._toMinuteStr(new Date(arr[i].confirmBorrowTime));
           that.setData({
             examState: app.globalData.matExamStr,
             progressList: arr
@@ -81,7 +80,6 @@ Page({
                     location = e.data[0] ? e.data[0].location : [];
                     console.warn("itemId is not unique", location);
                   }
-
                   that.setData({
                     [`progressList[${i}].location`]: location
                   });
@@ -103,6 +101,72 @@ Page({
     }
     return; // end of onLoad
   },
+
+  /**
+   * 确认借出
+   */
+  confirmBorrow(e) {
+    const that = this;
+    const index = Number(e.currentTarget.dataset.index);
+    const item = this.data.progressList[index];
+
+    wx.showModal({
+      title: "确认借出",
+      content: `请确保于${item.eventDate2}前归还并填写归还表单`,
+      success(res) {
+        if (!res.confirm)
+          return;
+
+        // call cloud function
+        wx.cloud.callFunction({
+          name: "operateForms",
+          data: {
+            caller: "userConfirmBorrow",
+            collection: app.globalData.dbMatBorrowCollection,
+            docID: item._id,
+            isDoc: true,
+            operate: "confirmBorrow",
+            update: {
+              exam: 4,
+              itemDoc: item.itemDoc,
+              quantity: item.quantity
+            }
+          }
+        }).then(res => {
+          console.log("[confirmBorrow]", res);
+          if (res.result.err || res.result.updated < 1)
+            wx.showToast({
+              title: "出错了, 请稍后重试",
+              icon: "none",
+              duration: 3000,
+              mask: true
+            });
+          else {
+            wx.showToast({
+              title: "更新成功",
+              icon: "success",
+              duration: 2000,
+              mask: true
+            });
+            that.setData({
+              [`progressList[${index}].exam`]: 4,
+              [`progressList[${index}].confirmBorrowTime`]: app._toDateStr(new Date())
+            });
+          }
+        }).catch(err => {
+          console.error("[confirmBorrow]", err);
+          wx.showToast({
+            title: "出错了, 请稍后重试",
+            icon: "none",
+            duration: 2000,
+            mask: true
+          });
+        });
+        // end wx.cloud.callFunction
+      }
+    });
+  },
+
   /**
    * 无效访问框
    */
@@ -120,5 +184,8 @@ Page({
         }, 2000);
       }
     });
-  }
+  },
+
+  /** 长按复制 */
+  longPressCopy: app._longPressCopy
 })
