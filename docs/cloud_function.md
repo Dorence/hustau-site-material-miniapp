@@ -26,25 +26,6 @@ Name    | Type    | Description
 name    | String  | 数据库中的用户名
 isSuper | Boolean | [Todo]是否为超级用户(可以管理管理员)
 
-
-## 2 updateApproval (弃用)
-
-用于 `viewApproval` 中更新审批情况. 调用时检查管理权限.
-
-- 输入: Object, 描述如下: 
-
-Name     | Type   | Description
---------:| ------ | ------------------------
-updateID | String | 要更新的 `doc` 的 `_id`.
-check    | Object | 新的 `check`
-exam     | Number | 新的 `exam`
-
-- 返回: Object - `{error: Boolean, msg: String [, updated : Number]}`, 
-
-若调用成功则 `error=true` 且有 `updated`;
-若失败则 `error=false` 且 `msg` 为错误信息, 无 `updated` 属性.
-
-
 ## 3 exportXlsx
 
   [in] `{openID, startDate, endDate}`
