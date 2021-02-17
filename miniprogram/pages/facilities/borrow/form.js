@@ -126,47 +126,61 @@ Page({
       return false;
     }
 
-    // get subscribe message permission
+    // subscribe, must by a tap
+    wx.showModal({
+      title: "温馨提示",
+      content: "即将请求一次消息权限，用于通知您的审批结果",
+      showCancel: false,
+      complete() {
+        that.subMsg([app.globalData.submsgTmplId.apprResult], res => {
+          formObj.isSubMsg = res === "accept";
+          that.submitAppr(formObj);
+        });
+      }
+    });
+  },
+
+  /**
+   * get subscribe message permission
+   * @param {String[]} tmplIds template id
+   * @param {Function} complete only call the first subscribe 
+   */
+  subMsg(tmplIds, complete) {
+    const that = this;
     wx.requestSubscribeMessage({
-      tmplIds: [app.globalData.submsgTmplId.apprResult],
+      tmplIds: tmplIds,
       success(res) {
-        console.log("[wx.requestSubscribeMessage]", res)
-        switch (res[app.globalData.submsgTmplId.apprResult]) {
+        console.log("[subMsg]", res);
+        switch (res[tmplIds[0]]) {
           case "accept": // do nothing
-            formObj.isSubMsg = true;
-            that.submitAppr(formObj);
-            break;
+            return complete("accept", res);
           case "reject": // do nothing
-            formObj.isSubMsg = false;
-            that.submitAppr(formObj);
-            break;
+            return complete("reject", res);
           default:
             wx.showToast({
               title: "出现错误请重试",
-              icon: 'error',
+              icon: "error",
               duration: 1000
             });
+            return complete("error", res);
         }
       },
       fail(res) {
-        console.error("[wx.requestSubscribeMessage]", res);
+        console.error("[subMsg]", res);
         wx.showModal({
           title: "错误",
           content: "订阅消息时网络错误或权限被限制，是否重试？",
           cancelText: "跳过",
           confirmText: "重试",
           success(res) {
-            if (res.confirm)
-              that.submit(e);
-            else if (res.cancel) {
-              formObj.isSubMsg = false;
-              that.submitAppr(formObj);
-            }
+            if (res.confirm) {
+              that.subMsg(tmplIds, complete);
+              return; // no more callback
+            } else return complete("reject");
           }
         });
       }
     });
-    return;
   },
 
   submitAppr(formObj) {
@@ -201,11 +215,11 @@ Page({
       wx.showModal({
         title: "提交成功",
         content: `请确保策划案发送至${app.globalData.contactEmail}并耐心等待审核结果`,
-        success(res) {
-          if (res.confirm)
-            wx.navigateBack({
-              delta: 1
-            });
+        showCancel: false,
+        complete() {
+          wx.navigateBack({
+            delta: 1
+          });
         }
       });
     }).catch(err => {
