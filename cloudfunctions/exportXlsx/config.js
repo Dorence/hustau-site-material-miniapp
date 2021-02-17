@@ -6,7 +6,7 @@
 
         cloudEnv: "release-824dd3",
         // cloudEnv: "cloud-miniapp-96177b",
-        miniprogramState: "developer", // developer, trial, formal
+        miniprogramState: "formal", // developer, trial, formal
         submsgTmplId: {
             apprResult: "jEKykTnvIomfpyZDaqc73JiNOierWcA3HuD_nf2vDfo", // approval result template id
             facNewAppr: "Z6QUlypDmcBzh2nQOFEBnvf8GXZpY4UgXZnZoFsI2cs" // new facilities approval template id
