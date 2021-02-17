@@ -35,7 +35,7 @@ Page({
       this.setData({
         examState: app.globalData.matExamStr
       });
-      this.fetchMatData();
+      this.fetchMatBorrowData();
     } else if (options.type === "additem") {
       this.setData({
         examState: app.globalData.matExamAddStr

@@ -72,9 +72,9 @@
   };
 
   /**
-   * yyyyQQQQnnnnn
+   * yyyySxnnnnn
    * yyyy = 年份, 对应学期（1,2月算前一年）
-   * QQQQ = Spri | Fall
+   * Sx = S1 | S2, S1=Spring, S2=Fall
    * nnnnn = 编号, 起始 00001
    * @param {String} formid 此前的 formid
    */
@@ -85,34 +85,34 @@
     // @note getMonth() => 0:Jan, 1:Feb, ... , 11:Dec
     switch (t.getMonth()) {
       case 0: // Jan
-        prefix = `${t.getFullYear() - 1}Fall`;
+        prefix = `${t.getFullYear() - 1}S2`;
         break;
       case 1: // Feb
-        if (t.getDate() <= 14) prefix = `${t.getFullYear() - 1}Fall`;
-        else prefix = `${t.getFullYear()}Spri`;
+        if (t.getDate() <= 14) prefix = `${t.getFullYear() - 1}S2`;
+        else prefix = `${t.getFullYear()}S1`;
         break;
       case 2: // Mar
       case 3: // Apr
       case 4: // May
       case 5: // Jun
       case 6: // Jul
-        prefix = `${t.getFullYear()}Spri`;
+        prefix = `${t.getFullYear()}S1`;
         break;
       case 7: // Aug
       case 8: // Sep
       case 9: // Oct
       case 10: // Nov
       case 11: // Dec
-        prefix = `${t.getFullYear()}Fall`;
+        prefix = `${t.getFullYear()}S2`;
         break;
       default:
-        prefix = "";
+        prefix = `${t.getFullYear()}XX`;
         console.error("Invalid month", t, t.getMonth());
     }
 
     let newFormNum = 1;
-    if (formid.substring(0, 8) === prefix)
-      newFormNum = Number(formid.substring(8)) + 1;
+    if (formid.substring(0, 6) === prefix)
+      newFormNum = Number(formid.substring(6)) + 1;
     let newID = prefix + U.paddingString(newFormNum, 5);
 
     console.log("[Previous formid]", formid, "[newID]", newID);

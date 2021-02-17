@@ -65,8 +65,7 @@ function fetchDB(PAGE) {
         return;
       }
       let x = res.result.data;
-
-      x.submitDate = app._toDateStr(new Date(x.submitDate));
+      x.submitDate = app._toMinuteStr(new Date(x.submitDate));
 
       if (!x.check)
         x.check = {};
@@ -78,34 +77,39 @@ function fetchDB(PAGE) {
         canSubmit: true
       });
 
-      if (x.check.hasOwnProperty("comment")) {
-        PAGE.setData({
-          borrowCommentLength: x.check.comment.length
+      if (x.isOriginalMat) {
+        PAGE.fetchItem(x.itemDoc).then(() => {
+          PAGE.setData({
+            "appr.genre": PAGE.data.itemInfo.genre,
+            "appr.location": PAGE.data.itemInfo.location,
+            "appr.itemName": PAGE.data.itemInfo.itemName,
+            "appr.check.comment": PAGE.data.itemInfo.description,
+            additemCommentLength: PAGE.data.itemInfo.description.length
+          });
         });
       }
 
-      return PAGE.fetchItem(x.itemDoc);
+      return PAGE;
     }).catch(err => {
-      console.error("[fetchDB]failed", err);
+      console.error("[fetchDB] failed", err);
     });
   }
 }
 
 Page({
   data: {
+    // common
     imgBaseDir: "../../../assets/",
+    canSubmit: false,
+
+    //  borrow
     examState: app.globalData.matExamStr,
-    newMaterialsExamState: ["未审批", "已审批"],
-    commentLength: 0,
-    maxCommentLength: 140,
-    category: ['服饰类', '宣传类', '奖品类', '工具类', '装饰类', '文本类', '其他'],
-    genreLetters: ["A", "B", "C", "D", "E", "F", "G"],
-    locationArray: [
-      ['一号仓库', '二号仓库', "三号仓库", '四号仓库'],
-      ['无货架号', '货架号1', '货架号2', '货架号3', '货架号4', '货架号5', '货架号6'],
-      ['无分区号', '分区A', '分区B', '分区C', '分区D', '分区E']
-    ],
     checkReturnQuantity: null,
+
+    borrowCommentLength: 0,
+    maxBorrowCommentLength: 140,
+    returnCommentLength: 0,
+    maxReturnCommentLength: 140,
 
     borrowMatInfo: [{
       badge: "group.png",
@@ -146,11 +150,13 @@ Page({
       value: "returnStatus"
     }],
 
-    canSubmit: false,
-    borrowCommentLength: 0,
-    maxBorrowCommentLength: 140,
-    returnCommentLength: 0,
-    maxReturnCommentLength: 140
+    // additem info
+    category: app.globalData.matCategory.map(x => x.join("，")),
+    locArr: app.globalData.matLocation,
+    examStateAdd: app.globalData.matExamAddStr,
+
+    additemCommentLength: 0,
+    maxAdditemCommentLength: 140
   },
 
   onLoad(options) {
@@ -173,19 +179,8 @@ Page({
       return;
     }
     this.setData(options);
-
     // get database
     fetchDB(this);
-    // fetchDB(this).then(() => {
-    //   console.log('fetch DB back!PAGE.data is', PAGE.data)
-    //   // HACK: 如果页面是从borrowThings导航而来，则表明该物品被管理员认为是原有物资 
-    //   // 于是覆盖掉表单上关于物品是否为原有物资的信息
-    //   if (PAGE.data.isOriginalMaterials)
-    //     PAGE.setData({
-    //       "appr.isOriginalMaterials": true,
-    //       "appr.itemDocId": PAGE.data.itemDocId
-    //     })
-    // });
   },
 
   /**
@@ -259,7 +254,6 @@ Page({
 
   submitBorrowAppr(docId, updateData) {
     const that = this;
-
     // prevent multiple submissions
     this.setData({
       canSubmit: false
@@ -308,6 +302,7 @@ Page({
       });
     }).catch(err => {
       console.error("[submitBorrowAppr]", err);
+      wx.hideLoading();
       wx.showToast({
         title: "出错了, 请稍后重试",
         icon: "none",
@@ -320,210 +315,195 @@ Page({
     });
   },
 
-  submitNewMaterials: function (e) {
-    // Note: formsData中itemName和itemId直接可用 
-    // 其余数据来自PAGE.data.appr (aka. apprData)
-    const formsData = e.detail.value;
-    const PAGE = this;
-    const apprData = PAGE.data.appr;
+  /**
+   * submit add item approval
+   * @param {Object} e 
+   */
+  submitAdditem(e) {
+    const value = e.detail.value;
 
-    if (formsData.description) formsData.description = formsData.description.trim();
-
-    //若为原有物资
-    if (apprData.isOriginalMaterials) {
-      console.log("[update]", apprData.itemDocId, "in  collection `item`, add quantity = ", apprData.addNumber);
-      wx.showLoading({
-        title: "提交中",
-        mask: true
+    value.quantity = Number(value.quantity);
+    if (isNaN(value.quantity) || value.quantity <= 0) {
+      wx.showModal({
+        title: "提交失败",
+        content: "请核对新增物资数量",
+        showCancel: false,
+        confirmText: "再去改改"
       });
-      // call cloud function
-      wx.cloud.callFunction({
+      return false;
+    }
+
+    value.itemName = value.itemName.trim();
+    if (!value.itemName) {
+      wx.showModal({
+        title: "提交失败",
+        content: "请输入物资名称",
+        showCancel: false,
+        confirmText: "再去改改"
+      });
+      return;
+    }
+
+    value.itemId = value.itemId.trim();
+    if (!value.itemId) {
+      wx.showModal({
+        title: "提交失败",
+        content: "请输入物资编号",
+        showCancel: false,
+        confirmText: "再去改改"
+      });
+      return;
+    }
+
+    if (!value.location[0]) {
+      wx.showModal({
+        title: "提交失败",
+        content: "请选择物资位置",
+        showCancel: false,
+        confirmText: "再去改改"
+      });
+      return;
+    }
+
+    if (value.description)
+      value.description = value.description.trim();
+
+    console.log("[submitAdditem]", value);
+
+    let item = {
+      description: value.description,
+      location: value.location,
+      quantity: value.quantity // @note 补充物资时需转化为 db.command.inc
+    };
+    let update = {
+      check: {
+        approver: this.data.appr.check.approver,
+        openid: app.loginState.openid,
+        comment: value.description
+      },
+      exam: 1
+    }
+    if (this.data.appr.isOriginalMat) {
+      // 补充物资
+      update.check.quantity = value.quantity;
+    } else {
+      // 新增物资
+      item.genre = Number(value.genre);
+      item.itemId = value.itemId;
+      item.itemName = value.itemName;
+
+      update.itemId = value.itemId;
+      update.itemName = value.itemName;
+    }
+
+    let extrainfo = {
+      item: item
+    };
+    if (this.data.appr.isOriginalMat) {
+      extrainfo.itemDoc = this.data.itemInfo._id;
+    }
+
+    console.log("[update]", update, "[extrainfo]", extrainfo);
+    return this.submitAdditemAppr(update, extrainfo);
+  },
+
+  async submitAdditemAppr(update, extrainfo) {
+    // prevent multiple submissions
+    this.setData({
+      canSubmit: false
+    });
+    wx.showLoading({
+      title: "提交中",
+      mask: true
+    });
+
+    try {
+      // 补充物资
+      const res = await wx.cloud.callFunction({
         name: "operateForms",
         data: {
-          caller: "addMaterials",
-          collection: "items",
-          docID: apprData.itemDocId,
+          caller: this.data.appr.isOriginalMat ? "addItemExisted" : "addItemNew",
+          collection: app.globalData.dbMatAddItemCollection,
+          docID: this.data.appr._id,
           isDoc: true,
           operate: "update",
-          update: {
-            addQuantity: apprData.addNumber
-          }
+          update: update,
+          extrainfo: extrainfo
         }
-      }).then(res => {
-        console.log("[addMaterials] callFunction", res);
-        // [Boolean]res.error indicates if calling has error
-        if (res.result.err || res.result.stats.updated < 1) {
-          wx.showToast({
-            title: "出错了, 请稍后重试",
-            icon: "none",
-            duration: 3000,
-            mask: true
-          });
-          return;
-        }
-
-        // call cloud function
-        wx.cloud.callFunction({
-          name: "operateForms",
-          data: {
-            caller: "updateNewMatAppr",
-            collection: "addNewMaterials",
-            docID: this.data.id,
-            isDoc: true,
-            operate: "update",
-            update: {
-              check: apprData.check,
-              exam: 1
-            }
-          }
-        }).then(res => {
-          console.log("[updateApproval]", res);
-          wx.hideLoading();
-          // [Boolean]res.error indicates if calling has error
-          if (res.result.err || res.updated < 1) wx.showToast({
-            title: "出错了, 请稍后重试",
-            icon: "none",
-            duration: 3000,
-            mask: true
-          });
-          else wx.showToast({
-            title: "数据库已更新",
-            icon: "success",
-            duration: 2000,
-            mask: true
-          });
-          fetchDB(PAGE);
-        }).catch(console.error);
-
-      }).catch(err => {
-        console.error(err);
-        return;
       });
 
-    } else {
-      console.log("[add] new item in collection `item`, [formsData]", formsData)
-      console.log("apprData", apprData)
-      if (!formsData.itemId || !formsData.itemName) {
-        wx.showModal({
-          title: "提交失败",
-          content: "信息不完整",
-          showCancel: false,
-          confirmText: "再去改改"
+      if (res.result.err || res.result.updated < 1) {
+        console.error("[submitAdditemAppr]", res.result);
+        wx.hideLoading();
+        wx.showToast({
+          title: "出错了, 请稍后重试",
+          icon: "none",
+          duration: 3000,
+          mask: true
         });
-        return;
+        this.setData({
+          canSubmit: true
+        });
+        return false;
       }
 
-      db.collection("items").where({
-        "itemId": formsData.itemId
-      }).count().then(res => {
-        if (!res.total) {
-          let formObj = {
-            itemName: formsData.itemName,
-            itemId: formsData.itemId,
-            description: formsData.description,
-            genre: apprData.genre,
-            location: apprData.location,
-            quantity: apprData.addNumber
+      wx.showToast({
+        title: "提交成功",
+        icon: "success",
+        duration: 2000,
+        mask: true
+      });
 
-          }
-          console.log("formObj", formObj, res.total)
-          wx.showLoading({
-            title: "提交中",
-            mask: true
-          });
-          db.collection("items").add({
-            data: formObj,
-            success(res) {
-              console.log("Successfully add to db!");
-              console.log("res:", res)
-            },
-            fail(res) {
-              console.error;
-              return
-            }
-          });
-
-          // call cloud function
-          wx.cloud.callFunction({
-            name: "operateForms",
-            data: {
-              caller: "updateNewMatAppr",
-              collection: "addNewMaterials",
-              docID: this.data.id,
-              isDoc: true,
-              operate: "update",
-              update: {
-                check: apprData.check,
-                exam: 1
-              }
-            }
-          }).then(res => {
-            console.log("[updateApproval]", res);
-            wx.hideLoading();
-            // [Boolean]res.error indicates if calling has error
-            if (res.result.err || res.updated < 1) wx.showToast({
-              title: "出错了, 请稍后重试",
-              icon: "none",
-              duration: 3000,
-              mask: true
-            });
-            else wx.showToast({
-              title: "数据库已更新",
-              icon: "success",
-              duration: 2000,
-              mask: true
-            });
-            fetchDB(PAGE);
-          }).catch(console.error);
-        } // end of if(!res.total) 
-        else {
-          wx.showModal({
-            title: "提交失败",
-            content: "物资id已存在",
-            showCancel: false,
-            confirmText: "再去改改"
-          });
-          return;
-        }
-      })
-
-    } // end of else
-
+      fetchDB(this); // 会更新 canSubmit
+    } catch (error) {
+      console.error("[submitAdditemAppr]", err);
+      wx.hideLoading();
+      wx.showToast({
+        title: "出错了, 请稍后重试",
+        icon: "none",
+        duration: 2000,
+        mask: true
+      });
+      this.setData({
+        canSubmit: true
+      });
+    }
+    return true;
   },
 
   /**
    * 根据 itemDoc 获取物资信息
    * @param {String} itemDoc 
    */
-  fetchItem(itemDoc) {
-    const that = this;
-    wx.cloud.callFunction({
-      name: "operateForms",
-      data: {
-        caller: "getItemInfo",
-        collection: app.globalData.dbMatItemsCollection,
-        docID: itemDoc,
-        // field: {
-        //   quantity: true
-        // },
-        isDoc: true,
-        operate: "read"
-      }
-    }).then(res => {
+  async fetchItem(itemDoc) {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: "operateForms",
+        data: {
+          caller: "getItemInfo",
+          collection: app.globalData.dbMatItemsCollection,
+          docID: itemDoc,
+          // field: {
+          //   quantity: true
+          // },
+          isDoc: true,
+          operate: "read"
+        }
+      });
       console.log("[fetchItem]res", res);
       if (res.result.err) {
         console.error("[error]", res.result.errMsg);
-        return;
+        return res.result;
       }
       let x = res.result.data;
-      that.setData({
+      this.setData({
         itemInfo: x
       });
-      return;
-    }).catch(err => {
+      return x;
+    } catch (err) {
       console.error("[fetchItem]failed", err);
-    });
-    return true;
+      return false;
+    }
   },
 
   /**
@@ -540,67 +520,34 @@ Page({
    * 归还审批意见输入时更新字数
    * @param {Object} e 传入的事件, e.detail.value为文本表单的内容
    */
-  returnCommentInput: function (e) {
+  returnCommentInput(e) {
     this.setData({
       returnCommentLength: e.detail.value.length
     });
   },
 
-  switchChange: function (e) {
-    const PAGE = this
-    console.log('switch发送选择改变，携带值为', e.detail.value)
-    PAGE.setData({
-      'appr.isOriginalMaterials': e.detail.value
-    })
+  /**
+   * 物资备注输入时更新字数
+   * @param {Object} e 传入的事件, e.detail.value为文本表单的内容
+   */
+  additemCommentInput(e) {
+    this.setData({
+      additemCommentLength: e.detail.value.length
+    });
   },
 
-  bindCategoryChange: function (e) {
-    console.log('genre picker发送选择改变，携带值为', e.detail.value)
-    const PAGE = this
-    const genreLetters = PAGE.data.genreLetters
-    let value = e.detail.value
-
+  bindCategoryChange(e) {
+    console.log("[bindCategoryChange]", e.detail.value)
     this.setData({
-      "appr.genre": genreLetters[value],
-      "appr.genreIndex": value
+      "appr.genre": e.detail.value
+    });
+  },
+
+  bindLocationChange(e) {
+    console.log("[bindLocationChange]", e.detail.value)
+    this.setData({
+      "appr.location": e.detail.value
     })
-    console.log(PAGE.data.genre)
-  }, //新增物资类别
-
-  /**
-   * 将picker传入的数组 e.g.[0,2,1] 转换为数据库中的location数组
-   * 其中location格式为 [1, 2, 'A'] 
-   * *note*:若后两位为0则删去， 若中间为0，第三位不为零，则中间设置为null
-   */
-  bindLocationPickerChange: function (e) {
-    console.log('picker发送选择改变，携带值为', e.detail.value)
-    const PAGE = this;
-    let value = e.detail.value;
-
-    function locationIndexToLocation(idx) {
-      var value1 = idx.slice();
-
-      value1[0] = value1[0] + 1;
-      if (value1[2] == 0) {
-        value1.pop();
-        if (value1[1] == 0) value1.pop();
-      } else {
-        value1[2] = PAGE.data.genreLetters[value1[2] - 1]
-        // convert index to genre letters
-        if (value1[1] == 0) value1[1] = null;
-      }
-
-      return value1
-    }
-    let loc = locationIndexToLocation(value);
-    console.log("location", loc)
-    console.log("locationIndex", value)
-    PAGE.setData({
-      "appr.location": loc,
-      "appr.locationIndex": value
-    })
-
-    console.log(PAGE.data)
   },
 
   /** 长按复制 */

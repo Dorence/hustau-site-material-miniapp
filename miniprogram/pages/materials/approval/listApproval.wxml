@@ -58,7 +58,7 @@
       <view class="weui-form-preview" wx:for="{{apprList}}" wx:for-index="i" wx:for-item="it" wx:key="_id">
         <view class="weui-form-preview__hd">
           <view class="weui-form-preview__item">
-            <view class="weui-form-preview__label">新增物资</view>
+            <view class="weui-form-preview__label">{{it.isOriginalMat ? "补充物资" : "新增物资"}}</view>
             <text
               class="weui-form-preview__value_in-hd">{{it.itemName}}</text>
           </view>
@@ -71,7 +71,7 @@
 
         <view class="weui-form-preview__bd">
           <view class="weui-form-preview__item">
-            <view class="weui-form-preview__label">是否为原有物资</view>
+            <view class="weui-form-preview__label">原有物资</view>
             <view class="weui-form-preview__value">{{it.isOriginalMat ? "是" : "否"}}</view>
           </view>
           <view class="weui-form-preview__item">

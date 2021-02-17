@@ -458,14 +458,88 @@ async function updateMain(event) {
       });
       // end updateFacAppr
 
-    case "addMaterials":
-      // console.log("[update]", c)
-      return await db.collection(event.collection).doc(event.docID).update({
-        data: {
-          quantity: db.command.inc(event.update.addQuantity)
+    case "addItemNew": { // 新增物资
+      updateObj = toUpdateObj(event, ["approver", "comment"]);
+      if (updateObj.err) return updateObj;
+
+      // 查询物资是否存在
+      try {
+        const res = await db.collection(CFG.dbMatItemsCollection).where({
+          itemId: event.update.itemId
+        }).count();
+        if (res.total > 0)
+          return new utils.EMsg("物资编号已存在");
+      } catch (err) {
+        console.error("[addItemNew]", err)
+        return new utils.EMsg("物资查询错误");
+      }
+
+      // 添加物资
+      try {
+        const res = await db.collection(CFG.dbMatItemsCollection).add({
+          data: event.extrainfo.item
+        });
+        console.log("[_id]", res._id);
+        updateObj.data.itemDoc = res._id; // doc id
+      } catch (err) {
+        console.error("[addItemNew]", err)
+        return new utils.EMsg("添加物资错误");
+      }
+
+      // 添加物资信息
+      updateObj.data.itemId = event.update.itemId;
+      updateObj.data.itemName = event.update.itemName;
+      console.log("[addItemNew]", updateObj);
+
+      return await c.update(updateObj).then(res => {
+        console.log("[update]", res);
+        return {
+          err: false,
+          errMsg: res.errMsg,
+          updated: res.stats.updated
         }
-      }).catch(console.error)
-      // end addMaterials
+      });
+    } // end addItemNew
+
+    case "addItemExisted": {
+      updateObj = toUpdateObj(event, ["approver", "comment"]);
+      if (updateObj.err) return updateObj;
+
+      const item = db.collection(CFG.dbMatItemsCollection).doc(event.extrainfo.itemDoc);
+      // 查询物资是否存在
+      try {
+        const res = await item.field({
+          itemId: true
+        }).get();
+        if (!res.data.itemId)
+          return new utils.EMsg("物资编号不存在");
+      } catch (err) {
+        console.error("[addItemExisted]", err)
+        return new utils.EMsg("物资查询错误");
+      }
+
+      // 更新物资
+      try {
+        event.extrainfo.item.quantity = db.command.inc(event.extrainfo.item.quantity);
+        const res = await item.update({
+          data: event.extrainfo.item
+        });
+        if (res.stats.updated < 1)
+          return new utils.EMsg("添加物资失败");
+      } catch (err) {
+        console.error("[addItemNew]", err)
+        return new utils.EMsg("添加物资错误");
+      }
+
+      return await c.update(updateObj).then(res => {
+        console.log("[update]", res);
+        return {
+          err: false,
+          errMsg: res.errMsg,
+          updated: res.stats.updated
+        }
+      });
+    } // end addItemNew
 
     case "superUpdateUser":
       console.info("[userList]", event.update.userList, "[c]", c._id);

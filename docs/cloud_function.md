@@ -26,13 +26,13 @@ Name    | Type    | Description
 name    | String  | 数据库中的用户名
 isSuper | Boolean | [Todo]是否为超级用户(可以管理管理员)
 
-## 3 exportXlsx
+## 2 exportXlsx
 
-  [in] `{openID, startDate, endDate}`
+[in] `{openID, startDate, endDate}`
 
-  生成 `xlsx` 文件, 需要检查 `openid` 是否为管理员(有权限导出). 导出内容为 startDate 至 endDate 内所有的审核通过的审批.
+生成 `xlsx` 文件, 需要检查 `openid` 是否为管理员(有权限导出). 导出内容为 startDate 至 endDate 内所有的审核通过的审批.
 
-## 4 operateForms
+## 3 operateForms
 
 - 输入: Object, 描述如下: 
 
@@ -49,7 +49,6 @@ isDoc      | Boolean | 是否使用 `doc` 方法取数据(否则为 `where` 方�
 Name  | Type   | Description
 -----:| ------ | --------------------
 docID | String | 表示需查询项的 `_id`
-
 
 如果 `isDoc` 为 `false`, 则还需要以下参数:
 

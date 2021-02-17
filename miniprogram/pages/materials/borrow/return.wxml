@@ -6,14 +6,14 @@
   <form class="page__bd" bindsubmit="submit">
     <view class="weui-cells__title">物资使用情况 </view>
     <view class="weui-cells weui-cells_after-title">
-      <view class="weui-cell weui-cell_input">
+      <view class="weui-cell">
         <view class="weui-cell__bd">
           <view class="weui-label">物资名称</view>
         </view>
-        <view class="weui-cell__ft weui-input">{{retItem.itemName}}</view>
+        <view class="weui-cell__ft">{{retItem.itemName}}</view>
       </view>
 
-      <view class="weui-cell weui-cell_input">
+      <view class="weui-cell">
         <view class="weui-cell__bd">
           <view class="weui-label">借用负责人</view>
         </view>
@@ -30,13 +30,13 @@
         </view>
       </view>
 
-      <view class="weui-cell weui-cell_input">
+      <view class="weui-cell weui-cell_input" style="padding-right: 0;">
         <view class="weui-cell__bd">
           <view class="weui-label">归还日期</view>
         </view>
         <view class="weui-cell__ft">
-          <picker mode="date" value="{{date}}" start="{{startDate}}" end="{{endDate}}"
-            bindchange="bindDateChange" name="returnDate">
+          <picker mode="date" value="{{date}}" start="{{startDate}}" end="{{endDate}}" bindchange="bindDateChange"
+            name="returnDate">
             <view class="weui-select" style="border-right: none;">{{date}}</view>
           </picker>
         </view>

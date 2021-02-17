@@ -90,54 +90,6 @@ App({
     return str;
   },
 
-  _genFormid(formid) {
-    formid = formid.toString();
-
-    let prefix;
-    let t = new Date();
-    // @note getMonth() => 0:Jan, 1:Feb, ... , 11:Dec
-    switch (t.getMonth()) {
-      case 0: // Jan
-        prefix = `${t.getFullYear() - 1}Fall`;
-        break;
-      case 1: // Feb
-        if (t.getDate() <= 14) prefix = `${t.getFullYear() - 1}Fall`;
-        else prefix = `${t.getFullYear()}Spri`;
-        break;
-      case 2: // Mar
-      case 3: // Apr
-      case 4: // May
-      case 5: // Jun
-      case 6: // Jul
-        prefix = `${t.getFullYear()}Spri`;
-        break;
-      case 7: // Aug
-      case 8: // Sep
-      case 9: // Oct
-      case 10: // Nov
-      case 11: // Dec
-        prefix = `${t.getFullYear()}Fall`;
-        break;
-      default:
-        prefix = "";
-        console.error("Invalid month", t, t.getMonth());
-    }
-    let newFormNumber = 1;
-    if (formid.substring(0, 8) === prefix)
-      newFormNumber = Number(formid.substring(8)) + 1;
-
-    let newID = "";
-    for (let i = 0; i < 5; i++) {
-      let m = newFormNumber % 10;
-      // JS calculate '%' and '/' as float
-      newID = m + newID;
-      newFormNumber = (newFormNumber - m) / 10;
-    }
-    newID = prefix + newID;
-    console.log("[Previous formid]", formid, "[newID]", newID);
-    return newID;
-  },
-
   /**
    * 判断是否是 ID String
    * @param {String} str - 待判断的字符串
