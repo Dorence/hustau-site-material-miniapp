@@ -17,26 +17,33 @@ Page({
         mi.push(i);
       return [hr, mi];
     })(),
+    canSubmit: false, // submit button
     index: 0,
-    array: (() => {
-      let arr = app.globalData.facRoomList.slice(); // copy an array
+    facRoomList: (() => {
+      let arr = app.globalData.facRoomList.slice(); // copy
       arr.unshift("请选择");
       return arr;
     })(),
+    adminState: 0, // -1 => disabled, 0 => init, 1 => loaded
+    adminRange: ["加载中"],
+    adminIndex: 0,
+    adminList: [],
     maxContentLength: 300,
-    canSubmit: false,
-    /* submit button */
-    contentLength: 0 /* textarea */
+    contentLength: 0 // textarea
   },
+
   /**
    * 页面加载时的事件
    */
   onLoad() {
+    if (this.data.adminState >= 0)
+      this.fetchAdminList();
+
     wx.showModal({
       title: "注意事项",
       content: app.globalData.rule,
       showCancel: false,
-      confirmText: "好",
+      confirmText: "我已知晓",
       complete: () => {
         this.setData({
           canSubmit: true
@@ -44,6 +51,7 @@ Page({
       }
     });
   },
+
   /**
    * 校验数据并生成对应的数据库对象
    * @param {object} data submit时表单的数据
@@ -74,11 +82,11 @@ Page({
       err: "请正确填写活动人数"
     };
 
-    if (!(/\d{11}/.test(data.phone))) return {
+    if (!/^\d{11}$/.test(data.phone)) return {
       err: "请填写正确的手机号"
     };
     return {
-      classroomNumber: p.array[p.index],
+      classroomNumber: p.facRoomList[p.index],
       eventDate: p.date,
       eventTime1: p.timeArr[0][p.timeAIndex[0]] + ":" + p.timeArr[1][p.timeAIndex[1]],
       eventTime2: p.timeArr[0][p.timeBIndex[0]] + ":" + p.timeArr[1][p.timeBIndex[1]],
@@ -90,16 +98,19 @@ Page({
         responser: data["eventResponser"],
         tel: data.phone
       },
-      submitDate: new Date(),
-      exam: 0
+      exam: 0,
+      _openid: app.loginState.openid
     };
   },
+
   /**
    * Submit the form.
    * @param {object} e event
    */
   submit(e) {
     const data = e.detail.value;
+    const that = this;
+
     console.log("[submit]", data);
 
     let formObj = this.toFormObject(data);
@@ -115,6 +126,50 @@ Page({
       return false;
     }
 
+    // get subscribe message permission
+    wx.requestSubscribeMessage({
+      tmplIds: [app.globalData.submsgTmplId.apprResult],
+      success(res) {
+        console.log("[wx.requestSubscribeMessage]", res)
+        switch (res[app.globalData.submsgTmplId.apprResult]) {
+          case "accept": // do nothing
+            formObj.isSubMsg = true;
+            that.submitAppr(formObj);
+            break;
+          case "reject": // do nothing
+            formObj.isSubMsg = false;
+            that.submitAppr(formObj);
+            break;
+          default:
+            wx.showToast({
+              title: "出现错误请重试",
+              icon: 'error',
+              duration: 1000
+            });
+        }
+      },
+      fail(res) {
+        console.error("[wx.requestSubscribeMessage]", res);
+        wx.showModal({
+          title: "错误",
+          content: "订阅消息时网络错误或权限被限制，是否重试？",
+          cancelText: "跳过",
+          confirmText: "重试",
+          success(res) {
+            if (res.confirm)
+              that.submit(e);
+            else if (res.cancel) {
+              formObj.isSubMsg = false;
+              that.submitAppr(formObj);
+            }
+          }
+        });
+      }
+    });
+    return;
+  },
+
+  submitAppr(formObj) {
     // add a mask to prevent multiple submissions
     wx.showLoading({
       mask: true,
@@ -124,50 +179,54 @@ Page({
       canSubmit: false
     });
 
-    forms.orderBy("formid", "desc").limit(2).field({
-      formid: true,
-      exam: true,
-      submitDate: true
-    }).get().then(res => {
-      formObj.formid = app._genFormid(res.data[0] ? res.data[0].formid : "");
-      console.log("[formObj]", formObj);
-      // begin forms.add()
-      forms.add({
-        data: formObj,
+    let data = {
+      caller: "newBorrowFac",
+      collection: app.globalData.dbFacFormCollection,
+      add: formObj,
+      operate: "add"
+    };
+
+    if (this.data.adminState > 0) {
+      data.extrainfo = {
+        adminOpenid: this.data.adminList[this.data.adminIndex].openid
+      };
+    }
+
+    return wx.cloud.callFunction({
+      name: "operateForms",
+      data: data
+    }).then(res => {
+      console.log("[submitAppr]Success", res);
+      wx.hideLoading();
+      wx.showModal({
+        title: "提交成功",
+        content: `请确保策划案发送至${app.globalData.contactEmail}并耐心等待审核结果`,
         success(res) {
-          console.log("Successfully add to db!");
-          wx.hideLoading();
-          wx.showModal({
-            title: "提交成功",
-            content: `请确保策划案发送至${app.globalData.contactEmail}并耐心等待审核结果`,
-            success(res) {
-              if (res.confirm)
-                wx.navigateBack({
-                  delta: 1
-                });
-            }
-          });
-          // end showModal
+          if (res.confirm)
+            wx.navigateBack({
+              delta: 1
+            });
         }
       });
-      // end forms.add()
+    }).catch(err => {
+      console.error("[submitAppr]failed", err);
     });
-
-    return true;
   },
+
   /**
    * 活动日期picker改变的函数
    */
-  bindDateChange: function (e) {
+  bindDateChange(e) {
     console.log("eventDate发送选择改变，携带值为", e.detail.value);
     this.setData({
       date: e.detail.value
     });
   },
+
   /**
    * 活动开始时间picker改变
    */
-  bindTimeChange1: function (e) {
+  bindTimeChange1(e) {
     const value = e.detail.value,
       B = this.data.timeBIndex;
     console.log("[bindTimeChange1]", value);
@@ -183,10 +242,11 @@ Page({
       });
     }
   },
+
   /**
    * 活动结束时间picker改变
    */
-  bindTimeChange2: function (e) {
+  bindTimeChange2(e) {
     const value = e.detail.value,
       A = this.data.timeAIndex;
     console.log("[bindTimeChange1]", value);
@@ -201,10 +261,12 @@ Page({
       });
     }
   },
+
   /**
-   * 时间的多列picker的列响应时间, 无事件
+   * 多列picker的列响应, 无事件
    */
-  bindTimeColChange1: () => {},
+  bindTimeColChange() {},
+
   /**
    * 借用教室picker改变的函数
    */
@@ -212,16 +274,59 @@ Page({
     console.log("[bindNumberChange]", e.detail.value)
     this.setData({
       index: e.detail.value
-    })
+    });
   },
+
+  bindAdminChange(e) {
+    console.log("[bindAdminChange]", e.detail.value)
+    this.setData({
+      adminIndex: e.detail.value
+    });
+  },
+
   /**
-   * contentInput()
    * 输入活动内容时的响应, 显示字数
    * @param {Object} e 传入的事件, e.detail.value为文本表单的内容
    */
-  contentInput: function (e) {
+  contentInput(e) {
     this.setData({
       contentLength: e.detail.value.length
     })
+  },
+
+  async fetchAdminList() {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: "operateForms",
+        data: {
+          caller: "getApprAdminList",
+          collection: app.globalData.dbAdminCollection,
+          field: {
+            name: true,
+            openid: true
+          },
+          filter: {
+            isAdmin: true,
+            showFacAppr: true
+          },
+          operate: "read"
+        }
+      });
+      console.log("[fetchAdminList]res", res);
+      if (res.result.err) {
+        console.error(res.result.errMsg);
+        return;
+      }
+
+      let data = res.result.data;
+      data.sort((x, y) => x.name < y.name ? -1 : 1);
+      this.setData({
+        adminState: 1,
+        adminList: data,
+        adminRange: data.map(x_1 => x_1.name)
+      });
+    } catch (err) {
+      console.error("[fetchAdminList]failed", err);
+    }
   }
 });

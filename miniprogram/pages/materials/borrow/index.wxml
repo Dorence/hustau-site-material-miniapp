@@ -1,0 +1,28 @@
+<!-- pages/materials/borrow/index.wxml -->
+<view class="goods">
+  <scroll-view class="menu-wrapper" scroll-y enable-back-to-top>
+    <view wx:for="{{availableItemsGenres}}" class="menu-item" wx:for-index="idx" wx:for-item="gen" wx:key="_">
+      <view class="text" bindtap="selectMenu" id="Genre{{idx}}">{{genreToChineseName[gen]}}</view>
+    </view>
+  </scroll-view>
+
+  <scroll-view class="items-wrapper" scroll-y scroll-into-view="{{toView}}" enable-back-to-top>
+    <view wx:for="{{availableItemsGenres}}" class="food-list food-list-hook" wx:for-index="idx" wx:for-item="gen"
+      wx:key="_">
+      <view class="title" id="Genre{{idx}}">{{genreToChineseName[gen]}}</view>
+      <view wx:for="{{availableItems[gen]}}" class="food-item" wx:for-index="itemIdx" wx:for-item="item" wx:key="_id">
+        <view class="content">
+          <view class="name">{{item.itemName}}</view>
+          <view class="desc">{{item.description}}</view>
+          <view class="extra">
+            <text class="count">剩余 {{item.quantity}}</text>
+          </view>
+          <view class="item-ctrl-wrapper" bindtap="onItemSelect" data-genre="{{gen}}" data-idx="{{itemIdx}}">
+            <view class="iconfont icon-jia cart-add"></view>
+          </view>
+        </view>
+        <!--end of content-->
+      </view>
+    </view>
+  </scroll-view>
+</view>

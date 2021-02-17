@@ -1,0 +1,6 @@
+/* pages/materials/approval/viewApproval.wxss */
+@import "../../common/progressView.wxss";
+
+.weui-cell.no-top-border:before {
+    border-top: none;
+}

@@ -1,8 +1,10 @@
+// pages/progressCheck/printForm_materials.js
+const app = getApp();
 const db = wx.cloud.database();
 
 Page({
   data: {
-    examState: ["未审批", "撤回", "未通过", "通过"],
+    examState: app.globalData.matExamStr,
     progressList: [],
     WIDTH: 375,
     HEIGHT: 550
@@ -11,7 +13,7 @@ Page({
   onLoad: function(options) {
     const PAGE = this;
     // console.log("options:" + options.type +' - ' + options.id);
-    db.collection("formsForMaterials").where({
+    db.collection(app.globalData.dbMatBorrowCollection).where({
       _id: options.id
     }).get({
       success(e) {

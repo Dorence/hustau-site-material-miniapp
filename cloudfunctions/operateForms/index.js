@@ -1,17 +1,20 @@
 // 云函数入口文件
+const CFG = require("./config.js");
 const cloud = require("wx-server-sdk");
 cloud.init({
-  // env: "cloud-miniapp-96177b",
-  env: "release-824dd3",
+  env: CFG.cloudEnv,
   traceUser: true
 });
+
 const db = cloud.database();
 const utils = require("./utils.js");
+const submsg = require("./message.js");
 
 /**
  * 设置合法的collection名字, 用于检验传入值 
  */
-const collectionList = ["adminInfo", "forms", "formsForMaterials", "items", "addNewMaterials"];
+const collectionList = [  CFG.dbAdminCollection, CFG.dbFacFormCollection,
+  CFG.dbMatAddItemCollection,  CFG.dbMatBorrowCollection,  CFG.dbMatItemsCollection];
 
 /** 
  * 用于检查 coName 是否是合法的 collection 名
@@ -21,9 +24,7 @@ const collectionList = ["adminInfo", "forms", "formsForMaterials", "items", "add
  */
 function inCollections(coName) {
   if (!coName) return false;
-  for (let i = 0; i < collectionList.length; i++)
-    if (coName === collectionList[i]) return true;
-  return false;
+  return collectionList.includes(coName);
 }
 
 /**
@@ -31,9 +32,7 @@ function inCollections(coName) {
  * @param {Object} ft 传入的filter, 可有自定义filter, 详见各个case
  */
 function toFilter(ft) {
-  /**
-   * 检查 ft
-   */
+  /** 检查 ft */
   if (!ft || Object.keys(ft).length === 0) return false;
   let x, obj = {};
 
@@ -42,16 +41,16 @@ function toFilter(ft) {
    */
   for (let s in ft) {
     switch (s) {
-      /**
-       * 查询筛选，字段的值在给定的数组内
-       * @method db.command.in 
-       */
       case "exam":
         if (utils.isArray(ft[s])) {
           x = [];
-          for (let i = 0; i < ft[s].length; i++)
+          for (let i in ft[s])
             if (utils.isExamNum(ft[s][i])) x.push(ft[s][i]);
           if (!x.length) return false;
+          /**
+           * 查询筛选，字段的值在给定的数组内
+           * @method db.command.in 
+           */
           obj.exam = db.command.in(x);
         } else {
           x = Number(ft[s]);
@@ -86,7 +85,7 @@ function toFilter(ft) {
           obj.eventDate = db.command.gte(ft.date[0])
             .and(db.command.lte(ft.data[0]));
         } else if (utils.isDateString(ft.date)) {
-          // exact one day 
+          // exact one day
           obj.eventDate = ft.date;
         } else return false;
         break; // date
@@ -106,7 +105,7 @@ function toFilter(ft) {
     }
   } // end for
 
-  console.log("[filter]", obj);
+  // console.log("[filter]", obj);
   return Object.keys(obj).length > 0 ? obj : false;
 }
 
@@ -129,8 +128,7 @@ async function getAllData(collect, offset = 0) {
     };
   }
 
-  const batch = Math.ceil((countRes.total - offset) / MAX_LIMIT);
-  // betchTimes
+  const batch = Math.ceil((countRes.total - offset) / MAX_LIMIT); // batch times
   const tasks = []; // for all promise
   for (let i = 0; i < batch; i++) {
     const promise = collect.skip(i * MAX_LIMIT + offset).limit(MAX_LIMIT).get();
@@ -146,9 +144,13 @@ async function getAllData(collect, offset = 0) {
   );
 }
 
-async function getUserPermission(userOpenid) {
-  return await db.collection("adminInfo").where({
-    openid: userOpenid
+/**
+ * 获取用户权限
+ * @param {String} openid OPENID
+ */
+async function getUserPermission(openid) {
+  return await db.collection(CFG.dbAdminCollection).where({
+    openid: openid
   }).get().then(res => {
     if (res.data.length) {
       return {
@@ -163,32 +165,99 @@ async function getUserPermission(userOpenid) {
       isAdmin: false
     };
   });
-  console.log("[isAdmin]", isAdmin);
-  if (!isAdmin) {
-    return {
-      err: true,
-      errMsg: "Promision denied."
-    };
-  }
 }
 
 /**
  * 是否有修改 collection 的权限
+ * @param {String} collction 对应的集合
  */
 function hasPermission(perm, collction) {
   switch (collction) {
-    case "adminInfo":
+    case CFG.dbAdminCollection:
       return perm.isAdmin && perm.isSuper;
-    case "forms":
+    case CFG.dbFacFormCollection:
       return perm.isAdmin;
-    case "formsForMaterials":
+    case CFG.dbMatBorrowCollection:
       return perm.isAdmin; //NOTE：可能存在两种管理员的问题
-    case "items":
+    case CFG.dbMatItemsCollection:
       return perm.isAdmin;
-    case "addNewMaterials":
+    case CFG.dbMatAddItemCollection:
       return perm.isAdmin
     default:
       return false;
+  }
+}
+
+/**
+ * "add" 操作主函数
+ */
+async function addMain(event) {
+  // 设置 collection
+  if (!inCollections(event.collection))
+    return new utils.EMsg("No such collection.");
+  let c = db.collection(event.collection);
+  let result;
+
+  switch (event.caller) {
+    case "newBorrowFac":
+      event.add.submitDate = db.serverDate();
+
+      result = await c.orderBy("formid", "desc").limit(2).field({
+        formid: true
+      }).get();
+      // console.log("[result]", result);
+      event.add.formid = utils.genFormid(result.data[0] ? result.data[0].formid : "");
+
+      // send subscribed message
+      if (event.extrainfo.adminOpenid) {
+        const ctx = {
+          character_string1: event.add.eventDate + " " + event.add.eventTime1 + "-" + event.add.eventTime2,
+          thing2: event.add.classroomNumber,
+          name4: event.add.event.responser,
+          phone_number3: event.add.event.tel,
+          thing5: event.add.event.name + ":" + event.add.event.content.substr(0, 20)
+        }
+        console.log("[submsg]", await submsg.facNewAppr(cloud, event.extrainfo.adminOpenid, ctx));
+      }
+
+      console.log("[event.add]", event.add);
+      return await c.add({
+        data: event.add
+      });
+      // end newBorrowFac
+
+    case "newBorrowMat":
+      event.add.submitDate = db.serverDate();
+
+      result = await c.orderBy("formid", "desc").limit(2).field({
+        formid: true
+      }).get();
+      // console.log("[result]", result);
+      event.add.formid = utils.genFormid(result.data[0] ? result.data[0].formid : "");
+
+      console.log("[event.add]", event.add);
+      return await c.add({
+        data: event.add
+      });
+      // end newBorrowFac
+
+    case "newAddItem":
+      event.add.submitDate = db.serverDate();
+
+      result = await c.orderBy("formid", "desc").limit(2).field({
+        formid: true
+      }).get();
+      // console.log("[result]", result);
+      event.add.formid = utils.genFormid(result.data[0] ? result.data[0].formid : "");
+
+      console.log("[event.add]", event.add);
+      return await c.add({
+        data: event.add
+      });
+      // end newAddItem
+
+    default:
+      return new utils.EMsg("Caller error.");
   }
 }
 
@@ -197,12 +266,8 @@ function hasPermission(perm, collction) {
  */
 async function readMain(event) {
   // 设置 collection
-  if (!inCollections(event.collection)) {
-    return {
-      err: true,
-      errMsg: "Wrong collection."
-    };
-  }
+  if (!inCollections(event.collection))
+    return new utils.EMsg("No such collection.");
   let c = db.collection(event.collection);
 
   // 设置取值
@@ -218,10 +283,8 @@ async function readMain(event) {
   } else {
     // 取所有记录
     const filter = toFilter(event.filter);
-    if (filter === false) return {
-      err: true,
-      errMsg: "Error filter."
-    };
+    if (filter === false)
+      return new utils.EMsg("Error filter.");
     c = c.where(filter);
   }
 
@@ -238,9 +301,14 @@ async function readMain(event) {
   }
 }
 
-function toUpdateObj(event) {
+/**
+ * generate update object
+ * @param {Object} event 
+ * @param {String[]} keywords array of check keys
+ */
+function toUpdateObj(event, keywords) {
   const u = event.update;
-  console.log("[openid]", event.openid, event);
+  // console.log("[toUpdateObj]openid", event.openid);
   let o = {
     check: {
       openid: event.openid
@@ -249,26 +317,30 @@ function toUpdateObj(event) {
 
   // 检查 check
   if (u.check && Object.keys(u.check).length) {
-    if (u.check.approver) o.check.approver = u.check.approver;
-    if (u.check.comment) o.check.comment = u.check.comment;
-    if (u.check.returnApprover) o.check.returnApprover = u.check.returnApprover;
-    if (u.check.returnComment) o.check.returnComment = u.check.returnComment;
+    keywords.forEach(val => {
+      if (u.check.hasOwnProperty(val)) o.check[val] = u.check[val];
+    });
     o.check.time = db.serverDate();
-  } else return {
-    err: true,
-    errMsg: "Error check."
-  }
+  } else
+    return new utils.EMsg("Error check.");
 
   // 检查 exam
   if (utils.isExamNum(u.exam)) o.exam = u.exam;
-  else return {
-    err: true,
-    errMsg: "Error exam."
+  else return new utils.EMsg("Error exam.");
+
+  // updateMatBorrowAppr 可能更新归还数量
+  if (event.caller === "updateMatBorrowAppr") {
+    if (u.hasOwnProperty("returnQuantity"))
+      o.returnQuantity = u.returnQuantity;
   }
 
   // 更新历史记录
   let tmp = o.check;
   tmp.exam = o.exam;
+
+  if (o.hasOwnProperty("returnQuantity"))
+    tmp.returnQuantity = o.returnQuantity;
+
   o.checkHis = db.command.push([tmp]);
 
   console.log("[update object]", o);
@@ -282,12 +354,8 @@ function toUpdateObj(event) {
  */
 async function updateMain(event) {
   // 设置 collection
-  if (!inCollections(event.collection)) {
-    return {
-      err: true,
-      errMsg: "Collection error."
-    };
-  }
+  if (!inCollections(event.collection))
+    return new utils.EMsg("No such collection.");
   let c = db.collection(event.collection);
 
   // 设置取值
@@ -303,19 +371,63 @@ async function updateMain(event) {
   } else {
     // 取所有记录
     const filter = toFilter(event.filter);
-    if (filter === false) return {
-      err: true,
-      errMsg: "Filter error."
-    };
+    if (filter === false)
+      return new utils.EMsg("Filter error.");
     c = c.where(filter);
   }
 
-
-  // 对于不同的 caller 可有不同的操作 
+  // 对于不同的 caller 可有不同的操作
+  let updateObj;
   switch (event.caller) {
-    case "updateAppr":
-      let updateObj = toUpdateObj(event);
+    case "updateNewMatAppr":
+      updateObj = toUpdateObj(event, ["approver", "comment"]);
       if (updateObj.err) return updateObj;
+
+      /** @todo send subscribed message */
+      return await c.update(updateObj).then(res => {
+        console.log("[update]", res);
+        return {
+          err: false,
+          errMsg: res.errMsg,
+          updated: res.stats.updated
+        }
+      });
+      // end updateNewMatAppr
+
+    case "updateMatBorrowAppr": {
+      let item = event.extrainfo.itemDoc;
+      if (!utils.isIDString(item, [16, 32, 36]))
+        return new utils.EMsg("Cannot index item.");
+      item = db.collection(CFG.dbMatItemsCollection).doc(item);
+
+      updateObj = toUpdateObj(event, ["borrowApprover", "borrowComment", "returnApprover", "returnComment"]);
+      if (updateObj.err) return updateObj;
+
+      /** @todo send subscribed message */
+      switch (updateObj.data.exam) {
+        case 4: // 审核时拒绝，物资不变化
+          break;
+        case 5: // 同意后撤销，移去物资（减少）
+          await item.update({
+            data: {
+              quantity: db.command.inc(-updateObj.data.returnQuantity) // negative
+            }
+          });
+          break;
+        case 6: // 审核时同意，补回物资（增加）
+          await item.update({
+            data: {
+              quantity: db.command.inc(updateObj.data.returnQuantity) // positive
+            }
+          });
+          break;
+        case 1:
+        case 2:
+        case 3:
+          break; // 借用审核，物资不变化
+        default:
+          return new utils.EMsg("Invalid exam.");
+      }
 
       return await c.update(updateObj).then(res => {
         console.log("[update]", res);
@@ -325,15 +437,108 @@ async function updateMain(event) {
           updated: res.stats.updated
         }
       });
-      // end updateAppr
-    case "addMaterials":
-      // console.log("[update]", c)
-      return await db.collection(event.collection).doc(event.docID).update({
-        data: {
-          quantity: db.command.inc(event.update.addQuantity)
+    } // end updateMatBorrowAppr
+
+    case "updateFacAppr":
+      updateObj = toUpdateObj(event, ["approver", "comment"]);
+      if (updateObj.err) return updateObj;
+
+      // send subscribed message
+      console.log("[submsg]", await submsg.facApprResult(cloud, event.openid, event.extrainfo));
+      updateObj.data.isSubMsg = false; // 消息订阅仅能启用一次
+
+      return await c.update(updateObj).then(res => {
+        console.log("[update]", res);
+        return {
+          err: false,
+          errMsg: res.errMsg,
+          updated: res.stats.updated
         }
-      }).catch(console.error)
-      // end addMaterials
+      });
+      // end updateFacAppr
+
+    case "addItemNew": { // 新增物资
+      updateObj = toUpdateObj(event, ["approver", "comment"]);
+      if (updateObj.err) return updateObj;
+
+      // 查询物资是否存在
+      try {
+        const res = await db.collection(CFG.dbMatItemsCollection).where({
+          itemId: event.update.itemId
+        }).count();
+        if (res.total > 0)
+          return new utils.EMsg("物资编号已存在");
+      } catch (err) {
+        console.error("[addItemNew]", err)
+        return new utils.EMsg("物资查询错误");
+      }
+
+      // 添加物资
+      try {
+        const res = await db.collection(CFG.dbMatItemsCollection).add({
+          data: event.extrainfo.item
+        });
+        console.log("[_id]", res._id);
+        updateObj.data.itemDoc = res._id; // doc id
+      } catch (err) {
+        console.error("[addItemNew]", err)
+        return new utils.EMsg("添加物资错误");
+      }
+
+      // 添加物资信息
+      updateObj.data.itemId = event.update.itemId;
+      updateObj.data.itemName = event.update.itemName;
+      console.log("[addItemNew]", updateObj);
+
+      return await c.update(updateObj).then(res => {
+        console.log("[update]", res);
+        return {
+          err: false,
+          errMsg: res.errMsg,
+          updated: res.stats.updated
+        }
+      });
+    } // end addItemNew
+
+    case "addItemExisted": {
+      updateObj = toUpdateObj(event, ["approver", "comment"]);
+      if (updateObj.err) return updateObj;
+
+      const item = db.collection(CFG.dbMatItemsCollection).doc(event.extrainfo.itemDoc);
+      // 查询物资是否存在
+      try {
+        const res = await item.field({
+          itemId: true
+        }).get();
+        if (!res.data.itemId)
+          return new utils.EMsg("物资编号不存在");
+      } catch (err) {
+        console.error("[addItemExisted]", err)
+        return new utils.EMsg("物资查询错误");
+      }
+
+      // 更新物资
+      try {
+        event.extrainfo.item.quantity = db.command.inc(event.extrainfo.item.quantity);
+        const res = await item.update({
+          data: event.extrainfo.item
+        });
+        if (res.stats.updated < 1)
+          return new utils.EMsg("添加物资失败");
+      } catch (err) {
+        console.error("[addItemNew]", err)
+        return new utils.EMsg("添加物资错误");
+      }
+
+      return await c.update(updateObj).then(res => {
+        console.log("[update]", res);
+        return {
+          err: false,
+          errMsg: res.errMsg,
+          updated: res.stats.updated
+        }
+      });
+    } // end addItemNew
 
     case "superUpdateUser":
       console.info("[userList]", event.update.userList, "[c]", c._id);
@@ -350,15 +555,45 @@ async function updateMain(event) {
       // end superUpdateUser
 
     default:
-      return {
-        err: true,
-        errMsg: "Caller error."
-      }
+      return new utils.EMsg("Caller error.");
   }
-  return {
-    err: true,
-    errMsg: "Runtime null."
-  };
+}
+
+/**
+ * confirm borrow
+ * @param {Object} event 
+ */
+async function confirmBorrowMain(event) {
+  // 设置 collection
+  if (!inCollections(event.collection))
+    return new utils.EMsg("No such collection.");
+  let c = db.collection(event.collection);
+
+  if (!event.isDoc)
+    return new utils.EMsg("Must be doc.");
+  c = c.doc(event.docID);
+
+  // 借出物品
+  await db.collection(CFG.dbMatItemsCollection).doc(event.update.itemDoc)
+    .update({
+      data: {
+        quantity: db.command.inc(-event.update.quantity) // negative
+      }
+    });
+
+  return await c.update({
+    data: {
+      confirmBorrowTime: db.serverDate(),
+      exam: event.update.exam
+    }
+  }).then(res => {
+    console.log("[confirmBorrowMain]", res);
+    return {
+      err: false,
+      errMsg: res.errMsg,
+      updated: res.stats.updated
+    }
+  });
 }
 
 /**
@@ -366,7 +601,8 @@ async function updateMain(event) {
  */
 async function bindUserMain(event) {
   // 设置 collection
-  if (!inCollections(event.collection)) return new utils.EMsg("Collection error.");
+  if (!inCollections(event.collection))
+    return new utils.EMsg("No such collection");
   let c = db.collection(event.collection);
 
   // 设置 管理员openid
@@ -374,7 +610,7 @@ async function bindUserMain(event) {
   return await c.where({
     openid: event.filter.superOpenid
   }).limit(1).get().then(resSuper => {
-    /** return of get superUser */
+    /** cb of get */
     console.log("[super]", resSuper);
 
     if (resSuper.data && resSuper.data.length === 1) {
@@ -437,7 +673,7 @@ async function bindUserMain(event) {
                     console.log("[add user]", res);
                     return {
                       err: false,
-                      updated:1,
+                      updated: 1,
                       errMsg: res.errMsg
                     }
                   }).catch(err => {
@@ -453,9 +689,10 @@ async function bindUserMain(event) {
       /** end for */
 
       return new utils.EMsg("Invalid request."); // not found
-    } else return new utils.EMsg("Invalid user.");
-
-    /** end return of get superUser */
+    } else {
+      return new utils.EMsg("Invalid user.");
+    }
+    /** end cb of get */
   });
 }
 
@@ -464,7 +701,8 @@ async function bindUserMain(event) {
  */
 async function removeMain(event) {
   // 设置 collection
-  if (!inCollections(event.collection)) return new utils.EMsg("Collection error.");
+  if (!inCollections(event.collection))
+    return new utils.EMsg("No such collection");
   let c = db.collection(event.collection);
 
   // 设置取值
@@ -500,14 +738,12 @@ async function removeMain(event) {
     default:
       return new utils.EMsg("Caller error.");
   }
-
-  return new utils.EMsg("Runtime error.");
 }
-
 
 /**
  * 云函数入口函数
  * @param {Object} event - 传入参数
+ * @param {Object} [event.add] - (operate=add时必填)新增记录的内容
  * @param {String} event.caller - 用于标识调用者
  * @param {String} event.collection - 需要操作的数据库集合
  * @param {String} [event.docID] - (isDoc=true时必填) 表示需查询项的 _id
@@ -516,9 +752,10 @@ async function removeMain(event) {
  * @param {Boolean} [event.isDoc] - 是否使用 doc() 方法获取一个数据
  * @param {String} event.operate - 操作, 目前只支持 read, update
  * @param {Object} [event.update] - (operate=update时必填)更新对象
+ * @param {Object} [event.extrainfo] - 额外的信息
  * @return { {data: Object[], errMsg: String} | {err: Boolean, errMsg: String} }
  */
-exports.main = async(event, context) => {
+exports.main = async (event, context) => {
   console.log("[event]", event);
   if (!event.caller)
     return {
@@ -529,40 +766,36 @@ exports.main = async(event, context) => {
   event.openid = event.userInfo.openId || cloud.getWXContext().OPENID;
 
   switch (event.operate) {
+    case "add":
+      return await addMain(event);
+      // end add
+
     case "read": // 获取数据表
       return await readMain(event);
-      // end read case
+      // end read
+
     case "update":
       const perm = await getUserPermission(event.openid);
       console.log("[permission]", perm);
-      if (hasPermission(perm, event.collection)) {
-        return await updateMain(event);
-      } else return {
-        err: true,
-        errMsg: "Promision denied."
-      }
-      break;
-      // end update case
+      if (hasPermission(perm, event.collection)) return await updateMain(event);
+      else return new utils.EMsg("Permission denied.")
+      // end update
+
+    case "confirmBorrow":
+      return await confirmBorrowMain(event);
+
     case "bindUser":
       return await bindUserMain(event);
-      break;
-      // end bindUser case
+      // end bindUser
+
     case "remove":
       const permRv = await getUserPermission(event.openid);
       console.log("[permission]", permRv);
-      if (hasPermission(permRv, event.collection)) {
-        return await removeMain(event);
-      } else return new utils.EMsg("Promision denied.");
-      break;
-      // end remove case
+      if (hasPermission(permRv, event.collection)) return await removeMain(event);
+      else return new utils.EMsg("Permission denied.");
+      // end remove
+
     default:
-      return {
-        err: true,
-        errMsg: "Unknown operate."
-      }
+      return new utils.EMsg("Unknown operate.");
   }
-  return {
-    err: true,
-    errMsg: "Runtime null."
-  };
 }

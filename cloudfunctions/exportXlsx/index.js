@@ -1,13 +1,11 @@
+// 云函数入口文件
+const CFG = require("./config.js");
 const cloud = require("wx-server-sdk");
-/**
- * initialize cloud
- * @method initialize
- */
 cloud.init({
-  // env: "cloud-miniapp-96177b",
-  env: "release-824dd3",
+  env: CFG.cloudEnv,
   traceUser: true
 });
+
 /**
  * 调用云数据库
  * @function getDatabase
@@ -19,14 +17,14 @@ const db = cloud.database();
  */
 const XLSX = require("xlsx");
 
-exports.main = async(event, context) => {
+exports.main = async (event, context) => {
   console.log(event);
 
   /**
    * check date available
    * @function if data available
    * @returns {object} error(true, message)
-   */ 
+   */
   if (!event.startDate || !event.endDate || event.startDate > event.endDate) {
     return {
       err: true,
@@ -51,14 +49,14 @@ exports.main = async(event, context) => {
    * @param {number} res.data.length - 时间长度，判断用户状态
    * @returns {boolean} isAdmin
    */
-  var isAdmin = await db.collection("adminInfo").where({
+  var isAdmin = await db.collection(CFG.dbAdminCollection).where({
     openid: event.openid
   }).get().then(res => {
     return Boolean(res.data.length);
   }).catch(err => {
     return false;
   });
-  console.log("[isAdmin]",isAdmin);
+  console.log("[isAdmin]", isAdmin);
   if (!isAdmin) {
     return {
       err: true,
@@ -71,7 +69,7 @@ exports.main = async(event, context) => {
    * db.command.gte 查询筛选，大于等于
    * @method get array'forms'
    */
-  var cellData = await db.collection("forms").where({
+  var cellData = await db.collection(CFG.dbFacFormCollection).where({
     exam: 3,
     submitDate: db.command.gte(event.startDate)
       .and(db.command.lte(event.endDate))
@@ -82,7 +80,7 @@ exports.main = async(event, context) => {
      */
     return res.data.reduce((arr, cur) => {
       arr.push([
-        cur.formid.toString(), cur.classroomNumber,
+        cur.formid, CFG.facExamStr[cur.exam], cur.classroomNumber,
         cur.eventDate, cur.eventTime1, cur.eventTime2,
         cur.event.association, cur.event.name, cur.event.content,
         cur.event.responser, cur.event.tel,
@@ -91,7 +89,7 @@ exports.main = async(event, context) => {
       ]);
       return arr;
     }, [
-      ["编号", "教室", "借用日期", "起始时间", "结束时间", "部门/社团", "内容", "具体事项", "借用人", "电话", "审批人", "通过情况", "参与人数"]
+      ["编号", "状态", "教室", "借用日期", "起始时间", "结束时间", "部门/社团", "内容", "具体事项", "借用人", "电话", "审批人", "通过情况", "参与人数"]
     ]);
   });
   //console.log(cellData);
@@ -110,9 +108,9 @@ exports.main = async(event, context) => {
   var workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, "导出数据");
   workbook.Props = {
-    Title: "社联场地借用汇总",
-    Author: "思存工作室",
-    Company: "HUSTAU"
+    Title: "场地借用汇总",
+    Author: "Sicun Studio",
+    Company: "HUSTAG"
   };
   console.log("[wb]", workbook);
   // end create workbook

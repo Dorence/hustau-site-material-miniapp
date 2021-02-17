@@ -1,0 +1,2 @@
+/* pages/facilities/approval/listApproval.wxss */
+@import "../../common/progressList.wxss";

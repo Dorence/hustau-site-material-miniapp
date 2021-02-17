@@ -1,4 +1,4 @@
-/* pages/approval/viewApproval.wxss */
+/* pages/common/progressView.wxss */
 @import "../../assets/weui.wxss";
 
 .page {

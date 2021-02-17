@@ -1,4 +1,4 @@
-//app.js
+// app.js
 const CFG = require("./config.js");
 // console.log(CFG);
 
@@ -26,18 +26,34 @@ App({
       wx.showToast({
         title: "请升级微信以使用小程序",
         icon: "none",
-        duration: 30000
+        duration: 10000
       });
     } else {
       wx.cloud.init({
+        env: CFG.cloudEnv,
         traceUser: true,
-        // env: "cloud-miniapp-96177b"
-        env: "release-824dd3"
       });
       for (let item in CFG)
         this.globalData[item] = CFG[item];
     }
   },
+
+  /**
+   * 返回填充至指定长度的字符串
+   * @param {any} data 
+   * @param {Number} len 
+   * @param {String} padChar 填充的字符
+   * @param {Boolean} fromEnd
+   */
+  _paddingString(data, len, padChar = "0", fromEnd = false) {
+    data = data.toString();
+    while (data.length < len) {
+      if (fromEnd) data += padChar;
+      else data = padChar + data;
+    }
+    return data;
+  },
+
   /**
    * 将Date对象转为"Y-m-d"字符串.
    * @param {Date} date 需要转换的日期对象
@@ -45,51 +61,65 @@ App({
    * @return {String} "Y-m-d"格式字符串
    */
   _toDateStr(date, leadingZeros = false) {
-    const z = function (n, l) {
-      n = n.toString();
-      while (n.length < l) n = "0" + n;
-      return n;
-    }
-    let str = "";
-    if (date instanceof Date) {
-      str += date.getFullYear() + "-";
-      if (leadingZeros) {
-        str += z(date.getMonth() + 1, 2) + "-" + z(date.getDate(), 2);
-      } else {
-        str += (date.getMonth() + 1) + "-" + date.getDate();
-      }
+    if (!date instanceof Date)
+      return "";
+    let str = date.getFullYear() + "-";
+    if (leadingZeros) {
+      str += this._paddingString(date.getMonth() + 1, 2) + "-" + this._paddingString(date.getDate(), 2);
+    } else {
+      str += (date.getMonth() + 1) + "-" + date.getDate();
     }
     return str;
   },
 
-  _genFormid(formid) {
-    formid = formid.toString();
-    console.log("[Previous formid]", formid);
-
-    let prefix,
-      t = new Date();
-    // @note getMonth() => 0:Jan, 1:Feb, ... , 11:Dec
-    if (t.getMonth() < 2)
-      prefix = `${t.getFullYear() - 1}Fall`; // Jan, Feb
-    else if (t.getMonth() < 8)
-      prefix = `${t.getFullYear()}Spri`; // Mar - Jun
-    else
-      prefix = `${t.getFullYear()}Fall`; // Aug - Dec
-
-    let newFormNumber = 1;
-    if (formid.substring(0, 8) === prefix)
-      newFormNumber = Number(formid.substring(8)) + 1;
-    console.log("[newFormNumber]", newFormNumber);
-
-    let newID = "";
-    for (let i = 0; i < 5; i++) {
-      let m = newFormNumber % 10;
-      // JS calculate '%' and '/' as float
-      newID = m + newID;
-      newFormNumber = (newFormNumber - m) / 10;
+  /**
+   * 将Date对象转为"Y-m-d h:M"字符串.
+   * @param {Date} date 
+   * @param {Boolean} leadingZeros 
+   */
+  _toMinuteStr(date, leadingZeros = false) {
+    if (!date instanceof Date)
+      return "";
+    let str = this._toDateStr(date, leadingZeros) + " ";
+    if (leadingZeros) {
+      str += this._paddingString(date.getHours(), 2);
+    } else {
+      str += date.getHours();
     }
-    newID = prefix + newID;
-    console.log("[newID]", newID);
-    return newID;
+    str += ":" + this._paddingString(date.getMinutes(), 2);
+    return str;
+  },
+
+  /**
+   * 判断是否是 ID String
+   * @param {String} str - 待判断的字符串
+   * @param {Number[]} lenArr - ID String可能的长度
+   * @return {Boolean} 是否是长度为 lenArr 中任意一个的ID String
+   */
+  _isIDString(str, lenArr) {
+    if (typeof str !== "string") return false;
+    if (!Array.isArray(lenArr)) return false;
+    for (let i = 0; i < lenArr.length; i++) {
+      if ((new RegExp("[0-9A-Za-z_-]{" + lenArr[i] + "}")).test(str))
+        return true;
+    }
+    return false;
+  },
+
+  /**
+   * 长按复制
+   * @param {Object} e event handler
+   */
+  _longPressCopy(e) {
+    const v = e.currentTarget.dataset.copy;
+    console.log("[longPressCopy]", v);
+    wx.setClipboardData({
+      data: v,
+      success() {
+        wx.showToast({
+          title: "复制成功"
+        });
+      }
+    });
   }
 })

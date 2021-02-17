@@ -3,6 +3,6 @@
   "navigationBarTitleText":"36号楼场地借用系统",
   "usingComponents": {
     "rulePanel": "../common/rulePanel",
-    "bigList" : "../common/bigList"
+    "bigList": "../common/bigList"
   }
 }

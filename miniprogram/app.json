@@ -2,17 +2,23 @@
   "pages": [
     "pages/facilities/index",
     "pages/materials/index",
+
     "pages/approval/exportApproval",
-    "pages/approval/listApproval",
-    "pages/approval/viewApproval",
+
     "pages/facilities/admin/superAdmin",
     "pages/facilities/admin/userBind",
+    "pages/facilities/approval/listApproval",
+    "pages/facilities/approval/viewApproval",
     "pages/facilities/borrow/form",
     "pages/facilities/borrow/query",
-    "pages/materials/borrowThings",
-    "pages/materials/borrowThings_form",
-    "pages/materials/addThings",
-    "pages/materials/returnThings",
+
+    "pages/materials/additem/form",
+    "pages/materials/approval/listApproval",
+    "pages/materials/approval/viewApproval",
+    "pages/materials/borrow/index",
+    "pages/materials/borrow/form",
+    "pages/materials/borrow/return",
+
     "pages/progressCheck/printForm",
     "pages/progressCheck/printForm_materials",
     "pages/progressCheck/progressCheck"

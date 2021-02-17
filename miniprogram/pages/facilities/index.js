@@ -37,10 +37,11 @@ Page({
       class: ""
     }
   },
+
   /**
-   * 加载页面
+   * 监听页面加载
    */
-  onLoad: function () {
+  onLoad() {
     this.checkLogin();
     // 获取用户信息
     this.getUserInfo();
@@ -51,18 +52,17 @@ Page({
   },
 
   /** 
-   * 下拉刷新
+   * 监听用户下拉刷新动作
    */
-  onPullDownRefresh: function () {
-    Promise.all([this.checkLogin(), this.getUserInfo()])
-      .then(() => {
-        wx.stopPullDownRefresh({
-          complete() {
-            console.log("[onPullDownRefresh] Finish.");
-          }
-        });
-        return true;
+  onPullDownRefresh() {
+    Promise.all([this.checkLogin(), this.getUserInfo()]).then(() => {
+      wx.stopPullDownRefresh({
+        complete() {
+          console.log("[onPullDownRefresh] finish");
+        }
       });
+      return true;
+    });
   },
 
   /**
@@ -72,12 +72,34 @@ Page({
   onShareAppMessage(res) {
     return {
       title: app.globalData.appFullName,
-      path: "/pages/facilities/index"
+      path: app.globalData.facIndexPath
     }
   },
 
+  /**
+   * 检查是否有授权并获取 userInfo 
+   */
+  getUserInfo() {
+    const that = this;
+    wx.getSetting({
+      success(res) {
+        if (res.authSetting["scope.userInfo"]) {
+          // 已授权,可以直接调用 getUserInfo
+          wx.getUserInfo({
+            success(res) {
+              console.log("[getUserInfo] seccess", res);
+              that.setData(res.userInfo);
+            }
+          });
+        } else {
+          console.log("No auth to 'scope.userInfo'.");
+        }
+      }
+    });
+  },
+
   /** 
-   * 点击登录按钮
+   * 登录按钮回调
    */
   userLogin() {
     if (app.loginState.isLogin === false) {
@@ -88,37 +110,13 @@ Page({
     }
   },
 
-  /** 
-   * 检查是否有授权并获取 userInfo 
-   */
-  getUserInfo() {
-    const that = this;
-    wx.getSetting({
-      success(res) {
-        if (res.authSetting["scope.userInfo"]) {
-          // 已授权,可以直接调用 getUserInfo
-          wx.getUserInfo({
-            success(r) {
-              console.log("[getUserInfo] success.");
-              that.setData(r.userInfo);
-            }
-          });
-        } else {
-          console.log("No auth to 'scope.userInfo'.");
-        }
-      }
-    });
-  },
-
   /** 链接至 listApproval */
   navToApproval(e) {
-    // console.log(e);
-    const data = e.currentTarget.dataset;
-    if (this.data.exam[data.idx].num && data.urlget.length > 0) {
+    const dataset = e.currentTarget.dataset;
+    if (this.data.exam[dataset.idx].num && dataset.urlget.length > 0) {
       wx.navigateTo({
-        url: '../approval/listApproval?' + data.urlget + '&type=facilities'
+        url: `approval/listApproval?${dataset.urlget}`
       });
-      //console.log("navigateTo", data);
     }
   },
 
@@ -146,8 +144,10 @@ Page({
     return Promise.all(arr);
   },
 
-  /** 检查用户登录状态 */
-  checkLogin: function () {
+  /** 
+   * 检查用户登录状态
+   */
+  checkLogin() {
     const that = this;
     wx.checkSession({
       success(res) {
@@ -178,7 +178,7 @@ Page({
   /** 
    * 更新全局变量 app.loginState
    */
-  updateUserInfo: function (obj) {
+  updateUserInfo(obj) {
     const that = this;
     return Promise.resolve().then(() => {
       app.loginState = obj;
@@ -190,7 +190,7 @@ Page({
   /** 
    * 检查用户是否是管理员
    */
-  isUserAdmin: function () {
+  isUserAdmin() {
     if (app.loginState && typeof app.loginState === "object")
       return app.loginState.isLogin && app.loginState.isAdmin;
     else
@@ -198,7 +198,7 @@ Page({
   },
 
   /** 调用云函数登录并修改页面状态 */
-  callCloudLogin: function (isShowToast) {
+  callCloudLogin(isShowToast) {
     const that = this;
     wx.cloud.callFunction({
       name: "login",
@@ -309,5 +309,50 @@ Page({
         duration: 2000
       });
     }
+  },
+
+  /**
+   * 管理员订阅被提及消息
+   */
+  subAdminMsg() {
+    const that = this;
+    const tmpl = app.globalData.submsgTmplId.facNewAppr;
+
+    // get subscribe message permission
+    wx.requestSubscribeMessage({
+      tmplIds: [tmpl],
+      success(res) {
+        console.log("[wx.requestSubscribeMessage]", res)
+        switch (res[tmpl]) {
+          case "accept":
+          case "reject":
+            wx.showToast({
+              title: res[tmpl],
+              icon: "none",
+              duration: 2000
+            });
+            break; // do nothing
+          default:
+            wx.showToast({
+              title: "出现错误请重试",
+              icon: 'error',
+              duration: 1000
+            });
+        }
+      },
+      fail(res) {
+        console.error("[wx.requestSubscribeMessage]", res);
+        wx.showModal({
+          title: "错误",
+          content: "订阅消息时网络错误或权限被限制，是否重试？",
+          cancelText: "跳过",
+          confirmText: "重试",
+          success(res) {
+            if (res.confirm)
+              that.subAdminMsg();
+          }
+        });
+      }
+    });
   }
 });

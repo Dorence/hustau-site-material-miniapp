@@ -32,10 +32,10 @@
       </view>
       <view class="weui-cell weui-cell_input" style="padding-right: 0;">
         <view class="weui-cell__hd">活动日期</view>
-        <view class="weui-cell__bd" style="margin-left: 16px;">
+        <view class="weui-cell__bd" style="margin-left: 36rpx;">
           <picker mode="date" value="{{date}}" start="2019-01-01" end="2099-12-31" bindchange="bindDateChange"
             name="eventDate">
-            <view class="weui-select">{{date}}</view>
+            <view class="weui-select" style="text-align: right;">{{date}}</view>
           </picker>
         </view>
       </view>
@@ -44,14 +44,14 @@
         <view class="weui-cell__bd">活动时间</view>
         <view class="weui-cell__bd">
           <picker mode="multiSelector" value="{{timeAIndex}}" range="{{timeArr}}" bindchange="bindTimeChange1"
-            bindcolumnchange="bindTimeColChange1">
+            bindcolumnchange="bindTimeColChange">
             <view class="weui-input">{{timeArr[0][timeAIndex[0]]}}:{{timeArr[1][timeAIndex[1]]}}</view>
           </picker>
         </view>
         <text class="weui-cell__bd">至</text>
         <view class="weui-cell__ft">
           <picker mode="multiSelector" value="{{timeBIndex}}" range="{{timeArr}}" bindchange="bindTimeChange2"
-            bindcolumnchange="bindTimeColChange1">
+            bindcolumnchange="bindTimeColChange">
             <view class="weui-input">{{timeArr[0][timeBIndex[0]]}}:{{timeArr[1][timeBIndex[1]]}}</view>
           </picker>
         </view>
@@ -63,9 +63,9 @@
     <view class="weui-cells weui-cells_after-title">
       <view class="weui-cell weui-cell_select">
         <view class="weui-cell__bd">
-          <picker mode="selector" bindchange="bindNumberChange" value="{{index}}" range="{{array}}"
-            name='classroomNumber'>
-            <view class="weui-select">{{array[index]}}</view>
+          <picker mode="selector" bindchange="bindNumberChange" value="{{index}}" range="{{facRoomList}}"
+            name="classroomNumber">
+            <view class="weui-select">{{facRoomList[index]}}</view>
           </picker>
         </view>
       </view>
@@ -82,7 +82,7 @@
       </view>
     </view>
     <!-- form cells-group 4 -->
-    <view class='weui-cells__title'>活动详情</view>
+    <view class='weui-cells__title'>详细信息</view>
     <view class="weui-cells weui-cells_after-title">
       <view class="weui-cell weui-cell_input">
         <view class="weui-cell__bd">
@@ -100,8 +100,16 @@
           <input class="weui-input" name="phone" placeholder="请输入11位手机号" />
         </view>
       </view>
+      <view wx:if="{{adminState >= 0}}" class="weui-cell weui-cell_input" style="padding-right: 0;">
+        <view class="weui-cell__hd">审批人</view>
+        <view class="weui-cell__bd" style="margin-left: 16px;">
+          <picker bindchange="bindAdminChange" name="adminOpenid" value="{{adminIndex}}" range="{{adminRange}}" >
+            <view class="weui-select">{{adminRange[adminIndex]}}</view>
+          </picker>
+        </view>
+      </view>
     </view>
     <!-- form submit -->
-    <button class="weui-btn" type="primary" form-type="submit" disabled="{{!canSubmit}}">提交</button>
+    <button class="weui-btn" type="primary" form-type="submit" disabled="{{(!canSubmit) && adminState !== 0}}">提交</button>
   </form>
 </view>

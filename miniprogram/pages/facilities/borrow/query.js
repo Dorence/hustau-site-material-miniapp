@@ -88,7 +88,7 @@ Page({
       wx.hideLoading();
 
       let x = res.result.data;
-      if (x.length) {
+      if (x && x.length) {
         let arr = [];
         for (let i in x) {
           arr.push({

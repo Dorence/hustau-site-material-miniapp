@@ -1,11 +1,11 @@
-(function() {
+(function () {
   "use strict";
   let U = {};
-  U.dateReg = /2\d{3}-(0\d|1[0-2])-([0-2]\d|3[01])/;
+  U.dateReg = /^2\d{3}-(0\d|1[0-2])-([0-2]\d|3[01])$/;
   U.maxExamNumber = 7;
 
   U.isArray = (obj) => {
-    return obj && typeof obj === "object" && Array === obj.constructor;
+    return Array.isArray(obj);
   };
 
   U.isString = (str) => {
@@ -50,10 +50,74 @@
   }
 
   /** error msg */
-  U.EMsg = function(msg = "") {
+  U.EMsg = function (msg = "") {
     this.err = true;
     this.errMsg = msg;
   };
 
+  /**
+   * 返回填充至指定长度的字符串
+   * @param {any} data 
+   * @param {Number} len 
+   * @param {String} padChar 填充的字符
+   * @param {Boolean} fromEnd
+   */
+  U.paddingString = (data, len, padChar = "0", fromEnd = false) => {
+    data = data.toString();
+    while (data.length < len) {
+      if (fromEnd) data += padChar;
+      else data = padChar + data;
+    }
+    return data;
+  };
+
+  /**
+   * yyyySxnnnnn
+   * yyyy = 年份, 对应学期（1,2月算前一年）
+   * Sx = S1 | S2, S1=Spring, S2=Fall
+   * nnnnn = 编号, 起始 00001
+   * @param {String} formid 此前的 formid
+   */
+  U.genFormid = (formid) => {
+    formid = formid.toString();
+    let prefix;
+    let t = new Date();
+    // @note getMonth() => 0:Jan, 1:Feb, ... , 11:Dec
+    switch (t.getMonth()) {
+      case 0: // Jan
+        prefix = `${t.getFullYear() - 1}S2`;
+        break;
+      case 1: // Feb
+        if (t.getDate() <= 14) prefix = `${t.getFullYear() - 1}S2`;
+        else prefix = `${t.getFullYear()}S1`;
+        break;
+      case 2: // Mar
+      case 3: // Apr
+      case 4: // May
+      case 5: // Jun
+      case 6: // Jul
+        prefix = `${t.getFullYear()}S1`;
+        break;
+      case 7: // Aug
+      case 8: // Sep
+      case 9: // Oct
+      case 10: // Nov
+      case 11: // Dec
+        prefix = `${t.getFullYear()}S2`;
+        break;
+      default:
+        prefix = `${t.getFullYear()}XX`;
+        console.error("Invalid month", t, t.getMonth());
+    }
+
+    let newFormNum = 1;
+    if (formid.substring(0, 6) === prefix)
+      newFormNum = Number(formid.substring(6)) + 1;
+    let newID = prefix + U.paddingString(newFormNum, 5);
+
+    console.log("[Previous formid]", formid, "[newID]", newID);
+    return newID;
+  }
+
   module.exports = U;
-}).call(this);
+})(this);

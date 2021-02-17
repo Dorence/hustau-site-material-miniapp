@@ -1,4 +1,4 @@
-/* pages/approval/listApproval.wxss */
+/* pages/common/progressList.wxss */
 @import "../../assets/weui.wxss";
 
 .page__desc {
@@ -15,6 +15,10 @@
   padding-bottom: 8px;
 }
 
+.weui-form-preview__value_in-hd {
+  font-size: 24px;
+}
+
 .preview-in-hd .weui-form-preview__value {
   color: #999 !important;
 }
@@ -27,4 +31,8 @@
 
 .weui-form-preview__item .weui-form-preview__value {
   color: #333;
+}
+
+.weui-form-preview__ft  button.weui-form-preview__btn{
+  background-color: unset;
 }
