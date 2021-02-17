@@ -1,7 +1,6 @@
 // pages/addThings/add.js
 const app = getApp();
 const db = wx.cloud.database();
-const forms = db.collection("addNewMaterials");
 
 Page({
   data: {

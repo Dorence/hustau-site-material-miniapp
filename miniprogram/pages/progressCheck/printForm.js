@@ -1,11 +1,10 @@
 // pages/progressCheck/printForm.js
 const app = getApp();
 const db = wx.cloud.database();
-const forms = db.collection(app.globalData.dbFacFormCollection);
 
 Page({
   data: {
-    examState: ["未审批", "撤回", "未通过", "通过"],
+    examState: app.globalData.facExamStr,
     progressList: [],
     WIDTH: 375,
     HEIGHT: 550
@@ -14,7 +13,7 @@ Page({
   onLoad: function (options) {
     const PAGE = this;
     // console.log("options:" + options.type +' - ' + options.id);
-    forms.where({
+    db.collection(app.globalData.dbFacFormCollection).where({
       _id: options.id
     }).get({
       success(e) {

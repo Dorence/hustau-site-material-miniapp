@@ -1,11 +1,11 @@
 // 云函数入口文件
 const CFG = require("./config.js");
-
 const cloud = require("wx-server-sdk");
 cloud.init({
   env: CFG.cloudEnv,
   traceUser: true
 });
+
 const db = cloud.database();
 const utils = require("./utils.js");
 const submsg = require("./message.js");
@@ -13,9 +13,8 @@ const submsg = require("./message.js");
 /**
  * 设置合法的collection名字, 用于检验传入值 
  */
-const collectionList = ["formsForMaterials", "items", "addNewMaterials"].concat(
-  CFG.dbAdminCollection, CFG.dbFacFormCollection
-);
+const collectionList = [  CFG.dbAdminCollection, CFG.dbFacFormCollection,
+  CFG.dbMatAddItemCollection,  CFG.dbMatBorrowCollection,  CFG.dbMatItemsCollection];
 
 /** 
  * 用于检查 coName 是否是合法的 collection 名
@@ -178,11 +177,11 @@ function hasPermission(perm, collction) {
       return perm.isAdmin && perm.isSuper;
     case CFG.dbFacFormCollection:
       return perm.isAdmin;
-    case "formsForMaterials":
+    case CFG.dbMatBorrowCollection:
       return perm.isAdmin; //NOTE：可能存在两种管理员的问题
-    case "items":
+    case CFG.dbMatItemsCollection:
       return perm.isAdmin;
-    case "addNewMaterials":
+    case CFG.dbMatAddItemCollection:
       return perm.isAdmin
     default:
       return false;

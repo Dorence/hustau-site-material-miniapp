@@ -1,6 +1,6 @@
 {
   "name": "login",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Login and check users' auth.",
   "main": "index.js",
   "scripts": {

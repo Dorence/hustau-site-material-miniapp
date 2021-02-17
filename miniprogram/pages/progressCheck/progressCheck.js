@@ -3,7 +3,9 @@ const app = getApp();
 const db = wx.cloud.database();
 
 Page({
-  data: {},
+  data: {
+    locArr: app.globalData.matLocation
+  },
   /**
    * 加载页面
    * @param {Object} options
@@ -64,27 +66,18 @@ Page({
             progressList: arr
           });
         }).then(() => {
-          var progressList = that.data.progressList;
-          for (let i in progressList)
-            if (progressList[i].exam > 2) {
-              let itemId = progressList[i].itemId;
-              // console.log('itemId:',itemId)
-              db.collection("items").where({
-                itemId: itemId
-              }).get({
-                success(e) {
-                  if (e.data.length == 1) {
-                    location = e.data[0].location;
-                    console.log("[location]", location);
-                  } else {
-                    location = e.data[0] ? e.data[0].location : [];
-                    console.warn("itemId is not unique", location);
-                  }
-                  that.setData({
-                    [`progressList[${i}].location`]: location
-                  });
-                },
-                fail: console.error
+          let list = that.data.progressList;
+          for (let i in list)
+            if (list[i].exam >= 3) {
+              db.collection(app.globalData.dbMatItemsCollection).doc(list[i].itemDoc).field({
+                location: true
+              }).get().then(res => {
+                console.log("[res.data]", res.data, i);
+                that.setData({
+                  [`progressList[${i}].location`]: res.data.location
+                });
+              }).catch(err => {
+                console.error(err);
               });
             }
           // end for
