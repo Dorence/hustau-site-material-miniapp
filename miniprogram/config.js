@@ -11,7 +11,7 @@
             apprResult: "jEKykTnvIomfpyZDaqc73JiNOierWcA3HuD_nf2vDfo", // approval result template id
             facNewAppr: "Z6QUlypDmcBzh2nQOFEBnvf8GXZpY4UgXZnZoFsI2cs" // new facilities approval template id
         },
-        
+
         // admin
         dbAdminCollection: "adminInfo", // database for admin info
 
@@ -20,7 +20,7 @@
         facExamStr: ["未审批", "撤回", "未通过", "通过"],
         facIndexPath: "pages/facilities/index",
         facRoomList: ["201", "205", "207", "208"], // available rooms
-        
+
         // materials
         dbMatAddItemCollection: "addNewMaterials",
         dbMatBorrowCollection: "formsForMaterials",
