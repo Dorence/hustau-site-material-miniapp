@@ -1,4 +1,4 @@
-// pages/common/bigListItem.js
+// pages/common/bigList.js
 Component({
   /**
    * @param col{{Number}} 分栏数 1-4, 默认为2
@@ -12,6 +12,10 @@ Component({
     enable: {
       type: Boolean,
       value: true
+    },
+    strError: {
+      type: String,
+      value: "请先登录"
     }
   },
 
@@ -24,7 +28,7 @@ Component({
         wx.navigateTo(dataset);
       } else {
         wx.showToast({
-          title: "请先登录",
+          title: this.data.strError,
           icon: "none",
           duration: 2000
         });

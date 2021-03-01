@@ -1,4 +1,4 @@
-// pages/approval/listApproval.js
+// pages/materials/approval/listApproval.js
 const app = getApp();
 const db = wx.cloud.database();
 

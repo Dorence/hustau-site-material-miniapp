@@ -13,8 +13,7 @@ const submsg = require("./message.js");
 /**
  * 设置合法的collection名字, 用于检验传入值 
  */
-const collectionList = [  CFG.dbAdminCollection, CFG.dbFacFormCollection,
-  CFG.dbMatAddItemCollection,  CFG.dbMatBorrowCollection,  CFG.dbMatItemsCollection];
+const collectionList = [CFG.dbAdminCollection, CFG.dbFacFormCollection, CFG.dbMatAddItemCollection, CFG.dbMatBorrowCollection, CFG.dbMatItemsCollection];
 
 /** 
  * 用于检查 coName 是否是合法的 collection 名

@@ -1,4 +1,4 @@
-// pages/addThings/add.js
+// pages/materials/additem/form.js
 const app = getApp();
 const db = wx.cloud.database();
 

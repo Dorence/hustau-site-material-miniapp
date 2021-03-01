@@ -1,4 +1,4 @@
-// pages/facilities/borrowClassroom.js
+// pages/facilities/borrow/form.js
 const app = getApp();
 const db = wx.cloud.database();
 const forms = db.collection(app.globalData.dbFacFormCollection);

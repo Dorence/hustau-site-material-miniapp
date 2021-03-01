@@ -1,4 +1,4 @@
-/** pages/facilities/listBorrow.wxss **/
+/** pages/facilities/borrow/query.wxss **/
 @import "../../../assets/weui.wxss";
 
 .table {

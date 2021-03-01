@@ -1,4 +1,4 @@
-<!--pages/approval/viewApproval.wxml-->
+<!-- pages/materials/approval/viewApproval.wxml -->
 <!-- borrow approval -->
 <view wx:if="{{type === 'borrow'}}" class="page">
   <view class="page__hd">
