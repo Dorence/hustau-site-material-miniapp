@@ -27,7 +27,7 @@
         dbMatAddItemCollection: "addNewMaterials",
         dbMatBorrowCollection: "formsForMaterials",
         dbMatItemsCollection: "items",
-        matDisabled: true,
+        matDisabled: false,
         matCategory: [
             ["服饰类", "A"],
             ["宣传类", "B"],
