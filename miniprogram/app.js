@@ -16,8 +16,7 @@ App({
  5. 普通教室须有活动负责人陪同使用并保证器材设备完好，活动结束后请将教室清理干净、桌椅归位，如发现教室卫生及器材损坏问题将影响未来二次借用，谢谢配合；
 
  6. 如有任何疑问，请联系36号楼教室借用负责人董雨奇: 13050977519。
-    `,
-    status: 0
+    `
   },
   globalForm: {},
   onLaunch() {
@@ -28,14 +27,16 @@ App({
         icon: "none",
         duration: 10000
       });
-    } else {
-      wx.cloud.init({
-        env: CFG.cloudEnv,
-        traceUser: true,
-      });
-      for (let item in CFG)
-        this.globalData[item] = CFG[item];
+      return;
     }
+
+    wx.cloud.init({
+      env: CFG.cloudEnv,
+      traceUser: true,
+    });
+
+    for (let item in CFG)
+      this.globalData[item] = CFG[item];
   },
 
   /**
@@ -88,6 +89,29 @@ App({
     }
     str += ":" + this._paddingString(date.getMinutes(), 2);
     return str;
+  },
+
+  /**
+   * 判断 n 是否为有限大数字
+   * @param {any} n 
+   */
+  _isNumeric(n) {
+    return typeof n === "number" && !isNaN(n) && isFinite(n);
+  },
+
+  /**
+   * 返回距 date 有 offset 天的日期
+   * @param {Date} date 
+   * @param {Number} offset = 0
+   */
+  _dayOffset(date, offset = 0) {
+    if (!this._isNumeric(offset)) {
+      console.error("[_dayOffset]offset is not a number", offset);
+      return false;
+    }
+    let d = new Date(date);
+    d.setDate(date.getDate() + offset);
+    return d;
   },
 
   /**

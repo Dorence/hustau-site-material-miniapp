@@ -1,6 +1,6 @@
 <!-- pages/common/foot.wxml -->
 <template name="foot">
-  <navigator class="weui-footer" openType="navigate" url="" hover-class="none" style="margin-bottom: 32px;">
+  <view class="weui-footer" style="margin-bottom: 32px;">
     <image src="../../assets/footer.png" style="width: 220px; height: 35px" class="icon-foot"></image>
-  </navigator>
+  </view>
 </template>
