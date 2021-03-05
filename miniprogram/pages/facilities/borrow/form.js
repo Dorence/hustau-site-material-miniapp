@@ -19,11 +19,7 @@ Page({
     })(),
     canSubmit: false, // submit button
     index: 0,
-    facRoomList: (() => {
-      let arr = app.globalData.facRoomList.slice(); // copy
-      arr.unshift("请选择");
-      return arr;
-    })(),
+    facRoomList: ["加载中"],
     adminState: 0, // -1 => disabled, 0 => init, 1 => loaded
     adminRange: ["加载中"],
     adminIndex: 0,
@@ -36,9 +32,7 @@ Page({
    * 页面加载时的事件
    */
   onLoad() {
-    if (this.data.adminState >= 0)
-      this.fetchAdminList();
-
+    this.fetchFacData();
     wx.showModal({
       title: "注意事项",
       content: app.globalData.rule,
@@ -308,22 +302,16 @@ Page({
     })
   },
 
-  async fetchAdminList() {
+  async fetchFacData() {
     try {
       const res = await wx.cloud.callFunction({
         name: "operateForms",
         data: {
-          caller: "getApprAdminList",
-          collection: app.globalData.dbAdminCollection,
-          field: {
-            name: true,
-            openid: true
-          },
-          filter: {
-            isAdmin: true,
-            showFacAppr: true
-          },
-          operate: "read"
+          caller: "getFacData",
+          operate: "read_2",
+          extrainfo: {
+            fetchAdmin: this.data.adminState >= 0
+          }
         }
       });
       console.log("[fetchAdminList]res", res);
@@ -332,12 +320,17 @@ Page({
         return;
       }
 
-      let data = res.result.data;
+      let data = res.result.admin;
       data.sort((x, y) => x.name < y.name ? -1 : 1);
+
+      let room = res.result.facRoomList;
+      room.unshift("请选择");
+      
       this.setData({
-        adminState: 1,
+        adminState: this.data.adminState >= 0 ? 1 : -1,
         adminList: data,
-        adminRange: data.map(x_1 => x_1.name)
+        adminRange: data.map(_x => _x.name),
+        facRoomList: room
       });
     } catch (err) {
       console.error("[fetchAdminList]failed", err);
