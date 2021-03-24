@@ -1,3 +1,4 @@
+<!-- pages/materials/additem/form.wxml -->
 <view class="page">
   <view class="page__hd">
     <view class="page__title">新增物资填表</view>

@@ -1,4 +1,4 @@
-// miniprogram/pages/materials/returnThings.js
+// pages/materials/borrow/return.js
 const app = getApp();
 const db = wx.cloud.database();
 Page({

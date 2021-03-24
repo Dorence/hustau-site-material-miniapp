@@ -1,4 +1,4 @@
-// pages/materials/materialsIndex.js
+// pages/materials/index.js
 const app = getApp();
 const db = wx.cloud.database();
 
@@ -42,10 +42,32 @@ Page({
    * 监听页面加载
    */
   onLoad() {
-    // 登录
+    // 禁用物资板块
+    if (app.globalData.matDisabled)
+      return;
+    // 设置导航栏标题
+    wx.setNavigationBarTitle({
+      title: app.globalData.matIndexTitle
+    });
+    // 检查登录session
     this.checkLogin();
     // 获取用户信息
     this.getUserInfo();
+  },
+
+  onShow() {
+    // 禁用物资板块
+    if (app.globalData.matDisabled)
+      wx.showModal({
+        title: "敬请期待",
+        content: "",
+        showCancel: false,
+        complete() {
+          wx.switchTab({
+            url: `/${app.globalData.facIndexPath}`
+          });
+        }
+      });
   },
 
   /** 
@@ -107,6 +129,55 @@ Page({
     }
   },
 
+  /**
+   * 链接至 listApproval
+   */
+  navToApproval(e) {
+    const dataset = e.currentTarget.dataset;
+    if (this.data[dataset.arr][dataset.flag].num && dataset.urlget.length > 0) {
+      wx.navigateTo({
+        url: `approval/listApproval?flag=${dataset.flag}&${dataset.urlget}`
+      });
+    }
+  },
+
+  /** 
+   * 获取各类审批的数量
+   * @param {String} collection 待查询集合
+   * @param {String} key Page.data 中字段
+   * 
+   * @note aggregate 聚合查询
+   *   -> project 流水线输入映射为新字段（将 submitDate 转换为字符串）
+   *   -> match 流水线筛选符合条件的输入，不能比较 Date 类型
+   *   -> sortByCount 流水线分类统计数量
+   *   -> end 结束聚合查询
+   */
+  async updateNumber(collection, key) {
+    const _ = db.command;
+    let res = await db.collection(collection).aggregate()
+      .project({
+        exam: "$exam",
+        submitDate: _.aggregate.dateToString({
+          date: "$submitDate",
+          format: "%Y-%m-%d"
+        })
+      })
+      .match({
+        submitDate: _.gte(app._toDateStr(app._dayOffset(new Date(), -365), true))
+      })
+      .sortByCount("$exam")
+      .end();
+
+    let table = this.data[key].slice();
+    for (let i in table) table[i].num = 0;
+    for (let it of res.list) table[it._id].num = it.count;
+    // console.log("[res]", res, "[table]", table);
+    this.setData({
+      [key]: table
+    })
+    return table;
+  },
+
   /** 
    * 检查用户登录状态
    */
@@ -116,15 +187,13 @@ Page({
       success(res) {
         // session_key 未过期，并且在本生命周期一直有效
         console.log("[checkSession] Has session.");
-        if (callLoginCnt++ >= 3) {
-          console.warn("Call cloud function [login]:", callLoginCnt);
-          let promise1 = new Promise(function (resolve, reject) {
+        if (++callLoginCnt >= 3) {
+          console.warn("[checkLogin] times:", callLoginCnt);
+          Promise.resolve().then(() => {
             setTimeout(() => {
               that.callCloudLogin(false);
-              resolve("Promise done " + callLoginCnt);
-            }, 40 * callLoginCnt * callLoginCnt);
+            }, 50 * callLoginCnt * callLoginCnt);
           });
-          Promise.resolve().then(promise1).then(console.log)
         } else {
           that.callCloudLogin(false);
         }
@@ -138,16 +207,18 @@ Page({
     });
   },
 
-  /** 更新全局变量 app.loginState */
-  updateUserInfo(obj) {
-    const that = this;
-    return Promise.resolve().then(function () {
-      app.loginState = obj;
-      that.setData(obj);
-      return that;
-    });
+  /** 
+   * 更新全局变量 app.loginState
+   */
+  async updateUserInfo(obj) {
+    app.loginState = obj;
+    this.setData(obj);
+    return this;
   },
-  /** 检查用户是否是管理员 */
+
+  /** 
+   * 检查用户是否是管理员
+   */
   isUserAdmin() {
     if (app.loginState && typeof app.loginState === "object")
       return app.loginState.isLogin && app.loginState.isAdmin;
@@ -156,13 +227,13 @@ Page({
   },
 
   /** 调用云函数登录并修改页面状态 */
-  callCloudLogin(isShowToast) {
+  callCloudLogin(isShowToast = true) {
     const that = this;
     wx.cloud.callFunction({
       name: "login",
       data: {}
     }).then(res => {
-      console.log("[login] call success", res.result);
+      console.log("[login]", res.result);
       if (isShowToast)
         wx.showToast({
           title: "登录成功",
@@ -175,16 +246,15 @@ Page({
         if (that.isUserAdmin()) {
           that.updateNumber(app.globalData.dbMatBorrowCollection, "examBorrow");
           that.updateNumber(app.globalData.dbMatAddItemCollection, "examAdd");
-          console.log(that.data)
         }
         that.showRedDot();
       });
     }).catch(err => {
-      console.error("[login] failed", err);
+      console.error("[login]", err);
       if (isShowToast) {
         wx.showToast({
           title: "登录失败",
-          icon: "error",
+          icon: "none",
           duration: 2000
         });
       }
@@ -192,36 +262,6 @@ Page({
         isLogin: false
       });
     });
-  },
-
-  /**
-   * 更新新增物资的审批数量
-   */
-  updateNumber(collection, key) {
-    function updateSingle(page, flag) {
-      return db.collection(collection).where({
-        exam: flag
-      }).count().then(res => {
-        page.setData({
-          [`${key}[${flag}].num`]: res.total
-        });
-      });
-    }
-
-    let arr = [];
-    for (let i = 0; i < this.data[key].length; i++)
-      arr.push(updateSingle(this, i));
-    return Promise.all(arr);
-  },
-
-  /** 链接至 listApproval */
-  navToApproval(e) {
-    const dataset = e.currentTarget.dataset;
-    if (this.data[dataset.arr][dataset.flag].num && dataset.urlget.length) {
-      wx.navigateTo({
-        url: `approval/listApproval?flag=${dataset.flag}&${dataset.urlget}`
-      });
-    }
   },
 
   /**

@@ -27,8 +27,7 @@
     "backgroundColor": "#f6f6f6",
     "backgroundTextStyle": "dark",
     "navigationBarBackgroundColor": "#f6f6f6",
-    "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "HUST社指36号楼场地及物资借用"
+    "navigationBarTextStyle": "black"
   },
   "tabBar": {
     "backgroundColor": "#ffffff",

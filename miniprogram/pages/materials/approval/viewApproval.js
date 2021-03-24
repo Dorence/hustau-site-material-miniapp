@@ -1,4 +1,4 @@
-// pages/approval/viewApproval.js
+// pages/materials/approval/viewApproval.js
 const app = getApp();
 const db = wx.cloud.database();
 

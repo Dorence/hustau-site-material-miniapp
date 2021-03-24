@@ -1,4 +1,4 @@
-<!-- pages/materials/returnThings.wxml -->
+<!-- pages/materials/borrow/return.wxml -->
 <view class="page">
   <view class="page__hd">
     <view class="page__title">归还物资</view>

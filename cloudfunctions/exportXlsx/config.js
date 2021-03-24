@@ -6,12 +6,13 @@
 
         cloudEnv: "release-824dd3",
         // cloudEnv: "cloud-miniapp-96177b",
+        
         miniprogramState: "formal", // developer, trial, formal
         submsgTmplId: {
             apprResult: "jEKykTnvIomfpyZDaqc73JiNOierWcA3HuD_nf2vDfo", // approval result template id
             facNewAppr: "Z6QUlypDmcBzh2nQOFEBnvf8GXZpY4UgXZnZoFsI2cs" // new facilities approval template id
         },
-        
+
         // admin
         dbAdminCollection: "adminInfo", // database for admin info
 
@@ -19,12 +20,14 @@
         dbFacFormCollection: "forms", // database for facilities forms
         facExamStr: ["未审批", "撤回", "未通过", "通过"],
         facIndexPath: "pages/facilities/index",
+        facIndexTitle: "36号楼场地借用系统",
         facRoomList: ["201", "205", "207", "208"], // available rooms
-        
+
         // materials
         dbMatAddItemCollection: "addNewMaterials",
         dbMatBorrowCollection: "formsForMaterials",
         dbMatItemsCollection: "items",
+        matDisabled: false,
         matCategory: [
             ["服饰类", "A"],
             ["宣传类", "B"],
@@ -36,6 +39,7 @@
         ],
         matExamStr: ["未审批", "撤回", "未通过", "允许借用", "待归还", "核销中", "已归还"],
         matExamAddStr: ["未审批", "已审批"],
+        matIndexTitle: "物资借用系统",
         matIndexPath: "pages/materials/index",
         matLocation: [
             ["无仓库", "一号仓库", "二号仓库", "三号仓库", "四号仓库"], // room

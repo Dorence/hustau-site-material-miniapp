@@ -1,7 +1,6 @@
 // pages/facilities/index.js
 const app = getApp();
 const db = wx.cloud.database();
-const forms = db.collection(app.globalData.dbFacFormCollection);
 
 let callLoginCnt = 0; // count times of calling Page.callCloudLogin
 
@@ -30,7 +29,7 @@ Page({
         icon: "../../assets/progressCheck.png"
       }
     ],
-    isLogin: false,
+    // ListTouch 扫码
     touch: {
       start: 0,
       direct: 0,
@@ -42,13 +41,14 @@ Page({
    * 监听页面加载
    */
   onLoad() {
+    // 设置导航栏标题
+    wx.setNavigationBarTitle({
+      title: app.globalData.facIndexTitle
+    });
+    // 检查登录session
     this.checkLogin();
     // 获取用户信息
     this.getUserInfo();
-    // 若为管理员, 获取各状态的数量
-    if (this.isUserAdmin()) {
-      this.updateNumber();
-    }
   },
 
   /** 
@@ -110,7 +110,9 @@ Page({
     }
   },
 
-  /** 链接至 listApproval */
+  /**
+   * 链接至 listApproval
+   */
   navToApproval(e) {
     const dataset = e.currentTarget.dataset;
     if (this.data.exam[dataset.idx].num && dataset.urlget.length > 0) {
@@ -121,27 +123,40 @@ Page({
   },
 
   /** 
-   * 更新符合条件的审批的数量
+   * 获取各类审批的数量
+   * @param {String} collection 待查询集合
+   * @param {String} key Page.data 中字段
+   * 
+   * @note aggregate 聚合查询
+   *   -> project 流水线输入映射为新字段（将 submitDate 转换为字符串）
+   *   -> match 流水线筛选符合条件的输入，不能比较 Date 类型
+   *   -> sortByCount 流水线分类统计数量
+   *   -> end 结束聚合查询
    */
-  updateNumber() {
-    let expireDate = new Date();
-    expireDate.setFullYear(expireDate.getFullYear() - 1);
+  async updateNumber(collection, key) {
+    const _ = db.command;
+    let res = await db.collection(collection).aggregate()
+      .project({
+        exam: "$exam",
+        submitDate: _.aggregate.dateToString({
+          date: "$submitDate",
+          format: "%Y-%m-%d"
+        })
+      })
+      .match({
+        submitDate: _.gte(app._toDateStr(app._dayOffset(new Date(), -365), true))
+      })
+      .sortByCount("$exam")
+      .end();
 
-    function updateSingle(flag, page) {
-      return forms.where({
-        exam: flag,
-        submitDate: db.command.gte(expireDate)
-      }).count().then(res => {
-        page.setData({
-          [`exam[${flag}].num`]: res.total
-        });
-      });
-    }
-
-    let arr = [];
-    for (let i = 0; i < this.data.exam.length; i++)
-      arr.push(updateSingle(i, this));
-    return Promise.all(arr);
+    let table = this.data[key].slice();
+    for (let i in table) table[i].num = 0;
+    for (let it of res.list) table[it._id].num = it.count;
+    // console.log("[res]", res, "[table]", table);
+    this.setData({
+      [key]: table
+    })
+    return table;
   },
 
   /** 
@@ -153,15 +168,13 @@ Page({
       success(res) {
         // session_key 未过期，并且在本生命周期一直有效
         console.log("[checkSession] Has session.");
-        if (callLoginCnt++ >= 3) {
-          console.warn("Call cloud function [login]:", callLoginCnt);
-          let promise1 = new Promise(function (resolve, reject) {
+        if (++callLoginCnt >= 3) {
+          console.warn("[checkLogin] times:", callLoginCnt);
+          Promise.resolve().then(() => {
             setTimeout(() => {
               that.callCloudLogin(false);
-              resolve("Promise done " + callLoginCnt);
-            }, 40 * callLoginCnt * callLoginCnt);
+            }, 50 * callLoginCnt * callLoginCnt);
           });
-          Promise.resolve().then(promise1).then(console.log)
         } else {
           that.callCloudLogin(false);
         }
@@ -178,13 +191,10 @@ Page({
   /** 
    * 更新全局变量 app.loginState
    */
-  updateUserInfo(obj) {
-    const that = this;
-    return Promise.resolve().then(() => {
-      app.loginState = obj;
-      that.setData(obj);
-      return that;
-    });
+  async updateUserInfo(obj) {
+    app.loginState = obj;
+    this.setData(obj);
+    return this;
   },
 
   /** 
@@ -198,13 +208,13 @@ Page({
   },
 
   /** 调用云函数登录并修改页面状态 */
-  callCloudLogin(isShowToast) {
+  callCloudLogin(isShowToast = true) {
     const that = this;
     wx.cloud.callFunction({
       name: "login",
       data: {}
-    }).then((res) => {
-      console.log("[login] call success", res.result);
+    }).then(res => {
+      console.log("[login]", res.result);
       if (isShowToast)
         wx.showToast({
           title: "登录成功",
@@ -213,13 +223,13 @@ Page({
       res.result.isLogin = true;
       that.updateUserInfo(res.result).then(() => {
         that.getUserInfo();
-        // 如果是管理员,获取各状态的数量
+        // 如果是管理员, 获取各状态的数量
         if (that.isUserAdmin()) {
-          that.updateNumber();
+          that.updateNumber(app.globalData.dbFacFormCollection, "exam");
         }
       });
     }).catch(err => {
-      console.error("[login] call failed", err);
+      console.error("[login]", err);
       if (isShowToast) {
         wx.showToast({
           title: "登录失败",
@@ -278,7 +288,7 @@ Page({
           that.handleScanSuccess(res.result);
         } else {
           wx.showToast({
-            title: "Unexpected.",
+            title: "Unexpected",
             icon: "none",
             duration: 2000
           });
@@ -286,7 +296,7 @@ Page({
       },
       fail() {
         wx.showToast({
-          title: "Unexpected.",
+          title: "Scan failed",
           icon: "none",
           duration: 2000
         });
@@ -296,11 +306,12 @@ Page({
 
   /**
    * 扫码成功后跳转函数
+   * @param {String} code 二维码译码结果
    */
   handleScanSuccess(code) {
     if (this.data.isLogin && /[0-9A-Za-z_-]{28},\d{6},\d+/.test(code)) {
       wx.navigateTo({
-        url: 'superAdmin/userBind?&code=' + code
+        url: "superAdmin/userBind?&code=" + code
       });
     } else {
       wx.showToast({

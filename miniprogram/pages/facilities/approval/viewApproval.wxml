@@ -60,7 +60,7 @@
             <view class="weui-cell__bd">
               <input class="weui-input" name="approver" placeholder="审批人姓名" value="{{appr.check.approver}}" />
             </view>
-            <view wx:if="{{type=='facilities'}}" class="weui-cell__ft">
+            <view class="weui-cell__ft">
               <view class="weui-vcode-btn" bindtap="checkAvailTime">查询借用情况</view>
             </view>
           </view>

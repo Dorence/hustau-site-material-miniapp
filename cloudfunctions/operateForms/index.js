@@ -13,8 +13,7 @@ const submsg = require("./message.js");
 /**
  * 设置合法的collection名字, 用于检验传入值 
  */
-const collectionList = [  CFG.dbAdminCollection, CFG.dbFacFormCollection,
-  CFG.dbMatAddItemCollection,  CFG.dbMatBorrowCollection,  CFG.dbMatItemsCollection];
+const collectionList = [CFG.dbAdminCollection, CFG.dbFacFormCollection, CFG.dbMatAddItemCollection, CFG.dbMatBorrowCollection, CFG.dbMatItemsCollection];
 
 /** 
  * 用于检查 coName 是否是合法的 collection 名
@@ -740,6 +739,37 @@ async function removeMain(event) {
   }
 }
 
+async function read_2(event) {
+  switch (event.caller) {
+    case "getFacData":
+      break;
+    default:
+      return new utils.EMsg("Caller error.");
+  }
+  // getFacData
+  let res = {
+    facRoomList: CFG.facRoomList
+  };
+
+  if (event.extrainfo.fetchAdmin) {
+    try {
+      res.admin = await db.collection(CFG.dbAdminCollection).where({
+        isAdmin: true,
+        showFacAppr: true
+      }).field({
+        openid: true,
+        name: true
+      }).get();
+
+      res.admin = res.admin.data;
+    } catch (error) {
+      return new utils.EMsg("Get admin error.");
+    }
+  }
+
+  return res;
+}
+
 /**
  * 云函数入口函数
  * @param {Object} event - 传入参数
@@ -773,6 +803,10 @@ exports.main = async (event, context) => {
     case "read": // 获取数据表
       return await readMain(event);
       // end read
+
+    case "read_2": // 获取数据表
+      return await read_2(event);
+      // end read_2
 
     case "update":
       const perm = await getUserPermission(event.openid);

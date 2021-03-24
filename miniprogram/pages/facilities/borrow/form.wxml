@@ -1,3 +1,4 @@
+<!-- pages/facilities/borrow/form.wxml -->
 <view class="page">
   <view class="page__hd">
     <view class="page__title">场地借用填表</view>
@@ -59,7 +60,7 @@
       <!-- 活动时间 end -->
     </view>
     <!-- form cells-group 2 -->
-    <view class='weui-cells__title'>借用教室编号</view>
+    <view class="weui-cells__title">借用场地</view>
     <view class="weui-cells weui-cells_after-title">
       <view class="weui-cell weui-cell_select">
         <view class="weui-cell__bd">
@@ -101,8 +102,8 @@
         </view>
       </view>
       <view wx:if="{{adminState >= 0}}" class="weui-cell weui-cell_input" style="padding-right: 0;">
-        <view class="weui-cell__hd">审批人</view>
-        <view class="weui-cell__bd" style="margin-left: 16px;">
+        <view class="weui-cell__bd">审批人</view>
+        <view class="weui-cell__ft">
           <picker bindchange="bindAdminChange" name="adminOpenid" value="{{adminIndex}}" range="{{adminRange}}" >
             <view class="weui-select">{{adminRange[adminIndex]}}</view>
           </picker>

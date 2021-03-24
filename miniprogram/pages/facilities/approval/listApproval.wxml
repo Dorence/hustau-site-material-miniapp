@@ -38,8 +38,8 @@
         </view>
         <!-- end bd -->
         <view class="weui-form-preview__ft">
-          <navigator url="viewApproval?id={{it._id}}"
-            class="weui-form-preview__btn weui-form-preview__btn_primary" hover-class="weui-form-preview__btn_active">
+          <navigator url="viewApproval?id={{it._id}}" class="weui-form-preview__btn weui-form-preview__btn_primary"
+            hover-class="weui-form-preview__btn_active">
             {{it.exam > 1 ? "详细信息" : "去审批"}}</navigator>
         </view>
       </view>

@@ -1,4 +1,4 @@
-// pages/noticeBoard/index.js
+// pages/facilities/borrow/query.js
 const app = getApp();
 
 Page({

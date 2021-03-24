@@ -1,4 +1,4 @@
-// pages/facilities/borrowClassroom.js
+// pages/facilities/borrow/form.js
 const app = getApp();
 const db = wx.cloud.database();
 const forms = db.collection(app.globalData.dbFacFormCollection);
@@ -19,11 +19,7 @@ Page({
     })(),
     canSubmit: false, // submit button
     index: 0,
-    facRoomList: (() => {
-      let arr = app.globalData.facRoomList.slice(); // copy
-      arr.unshift("请选择");
-      return arr;
-    })(),
+    facRoomList: ["加载中"],
     adminState: 0, // -1 => disabled, 0 => init, 1 => loaded
     adminRange: ["加载中"],
     adminIndex: 0,
@@ -36,9 +32,7 @@ Page({
    * 页面加载时的事件
    */
   onLoad() {
-    if (this.data.adminState >= 0)
-      this.fetchAdminList();
-
+    this.fetchFacData();
     wx.showModal({
       title: "注意事项",
       content: app.globalData.rule,
@@ -126,47 +120,61 @@ Page({
       return false;
     }
 
-    // get subscribe message permission
+    // subscribe, must by a tap
+    wx.showModal({
+      title: "温馨提示",
+      content: "即将请求一次消息权限，用于通知您的审批结果",
+      showCancel: false,
+      complete() {
+        that.subMsg([app.globalData.submsgTmplId.apprResult], res => {
+          formObj.isSubMsg = res === "accept";
+          that.submitAppr(formObj);
+        });
+      }
+    });
+  },
+
+  /**
+   * get subscribe message permission
+   * @param {String[]} tmplIds template id
+   * @param {Function} complete only call the first subscribe 
+   */
+  subMsg(tmplIds, complete) {
+    const that = this;
     wx.requestSubscribeMessage({
-      tmplIds: [app.globalData.submsgTmplId.apprResult],
+      tmplIds: tmplIds,
       success(res) {
-        console.log("[wx.requestSubscribeMessage]", res)
-        switch (res[app.globalData.submsgTmplId.apprResult]) {
+        console.log("[subMsg]", res);
+        switch (res[tmplIds[0]]) {
           case "accept": // do nothing
-            formObj.isSubMsg = true;
-            that.submitAppr(formObj);
-            break;
+            return complete("accept", res);
           case "reject": // do nothing
-            formObj.isSubMsg = false;
-            that.submitAppr(formObj);
-            break;
+            return complete("reject", res);
           default:
             wx.showToast({
               title: "出现错误请重试",
-              icon: 'error',
+              icon: "error",
               duration: 1000
             });
+            return complete("error", res);
         }
       },
       fail(res) {
-        console.error("[wx.requestSubscribeMessage]", res);
+        console.error("[subMsg]", res);
         wx.showModal({
           title: "错误",
           content: "订阅消息时网络错误或权限被限制，是否重试？",
           cancelText: "跳过",
           confirmText: "重试",
           success(res) {
-            if (res.confirm)
-              that.submit(e);
-            else if (res.cancel) {
-              formObj.isSubMsg = false;
-              that.submitAppr(formObj);
-            }
+            if (res.confirm) {
+              that.subMsg(tmplIds, complete);
+              return; // no more callback
+            } else return complete("reject");
           }
         });
       }
     });
-    return;
   },
 
   submitAppr(formObj) {
@@ -201,11 +209,11 @@ Page({
       wx.showModal({
         title: "提交成功",
         content: `请确保策划案发送至${app.globalData.contactEmail}并耐心等待审核结果`,
-        success(res) {
-          if (res.confirm)
-            wx.navigateBack({
-              delta: 1
-            });
+        showCancel: false,
+        complete() {
+          wx.navigateBack({
+            delta: 1
+          });
         }
       });
     }).catch(err => {
@@ -294,22 +302,16 @@ Page({
     })
   },
 
-  async fetchAdminList() {
+  async fetchFacData() {
     try {
       const res = await wx.cloud.callFunction({
         name: "operateForms",
         data: {
-          caller: "getApprAdminList",
-          collection: app.globalData.dbAdminCollection,
-          field: {
-            name: true,
-            openid: true
-          },
-          filter: {
-            isAdmin: true,
-            showFacAppr: true
-          },
-          operate: "read"
+          caller: "getFacData",
+          operate: "read_2",
+          extrainfo: {
+            fetchAdmin: this.data.adminState >= 0
+          }
         }
       });
       console.log("[fetchAdminList]res", res);
@@ -318,12 +320,17 @@ Page({
         return;
       }
 
-      let data = res.result.data;
+      let data = res.result.admin;
       data.sort((x, y) => x.name < y.name ? -1 : 1);
+
+      let room = res.result.facRoomList;
+      room.unshift("请选择");
+      
       this.setData({
-        adminState: 1,
+        adminState: this.data.adminState >= 0 ? 1 : -1,
         adminList: data,
-        adminRange: data.map(x_1 => x_1.name)
+        adminRange: data.map(_x => _x.name),
+        facRoomList: room
       });
     } catch (err) {
       console.error("[fetchAdminList]failed", err);

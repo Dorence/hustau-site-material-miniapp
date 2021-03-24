@@ -83,23 +83,23 @@
         </view>
       </view>
 
-      <view class="weui-cell weui-cell_input">
+      <view class="weui-cell weui-cell_input" style="padding-right: 0;">
         <view class="weui-cell__bd">
           <view class="weui-label">借用日期</view>
         </view>
         <picker class="weui-input" mode="date" name="eventDate1" value="{{date1}}" start="2019-01-01" end="2099-12-31"
           bindchange="bindDateChange1">
-          {{date1}}
+          <view class="weui-select">{{date1}}</view>
         </picker>
       </view>
 
-      <view class="weui-cell weui-cell_input">
+      <view class="weui-cell weui-cell_input" style="padding-right: 0;">
         <view class="weui-cell__bd">
           <view class="weui-input">归还日期</view>
         </view>
         <picker class="weui-input" mode="date" name="eventDate2" value="{{date2}}" start="{{date1}}"
           end="{{validEndDay}}" bindchange="bindDateChange2">
-          {{date2}}
+          <view class="weui-select">{{date2}}</view>
         </picker>
       </view>
     </view>
