@@ -78,7 +78,7 @@
         <view class="weui-cell__bd">
           <textarea class="weui-textarea" name="eventContent" placeholder="请输入详细活动内容" maxlength="{{maxContentLength}}"
             bindinput="contentInput" />
-          <view class="weui-textarea-counter">{{contentLength}}/{{maxContentLength}}</view>
+          <view class="weui-textarea-counter">{{contentLength}}/{{minContentLength}}</view>
           </view>
       </view>
     </view>

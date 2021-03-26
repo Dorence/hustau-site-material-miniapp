@@ -24,7 +24,8 @@ Page({
     adminRange: ["加载中"],
     adminIndex: 0,
     adminList: [],
-    maxContentLength: 300,
+    maxContentLength: 2000,
+    minContentLength: 200,
     contentLength: 0 // textarea
   },
 
@@ -50,12 +51,16 @@ Page({
    * 校验数据并生成对应的数据库对象
    * @param {object} data submit时表单的数据
    */
-  toFormObject(data) {
+  async toFormObject(data) {
     const p = this.data;
+    const dateArr = p.date.match(/\d+/g).map(_ => parseInt(_));
+    const startTime = new Date(dateArr[0], dateArr[1] - 1, dateArr[2], parseInt(p.timeArr[0][p.timeAIndex[0]]) - 1, parseInt(p.timeArr[1][p.timeAIndex[1]]),0,0);
+    const expire = new Date(dateArr[0], dateArr[1] - 1, dateArr[2], parseInt(p.timeArr[0][p.timeBIndex[0]]) - 1, parseInt(p.timeArr[1][p.timeBIndex[1]]),0,0);
+    console.log('startTime ：' + startTime);
+    console.log('endTime : ' + expire);
     if (!p.index) return {
       err: "请选择教室"
     };
-
     // trim and judge
     const trimArr = [
       ["associationName", "单位名称"],
@@ -70,7 +75,27 @@ Page({
       };
     }
     // end trim and judge
-
+    let t = await db.collection('forms').where({
+      classroomNumber: this.classroomNumber,
+      exam: 3
+    }).get().then(res => {
+      for(let form of res.data){
+        const formDateArr = form.eventDate.match(/\d+/g).map(_ => parseInt(_)); //将"xxxx-yy-mm"转换为数字数组
+        const formStartTimeArr = form.eventTime1.match(/\d+/g).map(_ => parseInt(_)); //将场地借用起始时间转换为数字数组
+        const formEndTimeArr = form.eventTime2.match(/\d+/g).map(_ => parseInt(_));
+        const formStartTime = new Date(formDateArr[0], formDateArr[1] - 1, formDateArr[2], formStartTimeArr[0], formStartTimeArr[1], 0, 0);
+        const formEndTime = new Date(formDateArr[0], formDateArr[1] - 1, formDateArr[2], formEndTimeArr[0], formEndTimeArr[1], 0, 0);
+        console.log('formStartTime : ' + formStartTime);
+        console.log('formEndTime : ' + formEndTime);
+        if(startTime > formStartTime && startTime < formEndTime || expire > formStartTime && expire < formEndTime){
+          return{
+            err: "场地申请时间与其他已通过申请时间冲突"
+          }
+        }
+      }
+    })
+    if(t)
+      return t;
     data.attendNumber = Number(data.attendNumber);
     if (!data.attendNumber || data.attendNumber < 0) return {
       err: "请正确填写活动人数"
@@ -79,11 +104,22 @@ Page({
     if (!/^\d{11}$/.test(data.phone)) return {
       err: "请填写正确的手机号"
     };
+
+    if(this.data.contentLength < this.data.minContentLength)return {
+      err: `活动内容字数不能少于${this.data.minContentLength}字`
+    }
+
+    if(this.data.contentLength > this.data.maxContentLength)return {
+      err: `活动内容字数不能多于${this.data.maxContentLength}字`
+    }
+
     return {
       classroomNumber: p.facRoomList[p.index],
       eventDate: p.date,
       eventTime1: p.timeArr[0][p.timeAIndex[0]] + ":" + p.timeArr[1][p.timeAIndex[1]],
       eventTime2: p.timeArr[0][p.timeBIndex[0]] + ":" + p.timeArr[1][p.timeBIndex[1]],
+      startTime: new Date(dateArr[0], dateArr[1], dateArr[2], parseInt(p.timeArr[0][p.timeAIndex[0]]), parseInt(p.timeArr[1][p.timeAIndex[1]]),0,0),
+      endTime: new Date(dateArr[0], dateArr[1], dateArr[2], parseInt(p.timeArr[0][p.timeBIndex[0]]), parseInt(p.timeArr[1][p.timeBIndex[1]]),0,0),
       event: {
         association: data["associationName"],
         attendNumber: Number(data["attendNumber"]),
@@ -101,13 +137,13 @@ Page({
    * Submit the form.
    * @param {object} e event
    */
-  submit(e) {
+  async submit(e) {
     const data = e.detail.value;
     const that = this;
 
     console.log("[submit]", data);
 
-    let formObj = this.toFormObject(data);
+    let formObj = await this.toFormObject(data);
 
     // has error
     if (formObj.hasOwnProperty("err")) {
@@ -119,7 +155,7 @@ Page({
       });
       return false;
     }
-
+    console.log('test')
     // subscribe, must by a tap
     wx.showModal({
       title: "温馨提示",
