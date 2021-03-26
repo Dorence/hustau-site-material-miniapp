@@ -109,6 +109,30 @@ function toFilter(ft) {
 }
 
 /**
+ * toField()
+ * @param {Object} fd 传入的field, 可有自定义field, 详见各个case
+ */
+function toField(fd) {
+  /** 检查 ft */
+  if (!fd || Object.keys(fd).length === 0) return false;
+  let obj = {};
+  for (let s in fd)
+    if (fd[s]) {
+      switch (s) {
+        case "facQueryBasic": // override all other configs
+          return {
+            classroomNumber: true, eventTime1: true, eventTime2: true, "event.association": true, "event.responser": true, "event.tel": true
+          };
+        default:
+          obj[s] = fd[s];
+      }
+    }
+
+  // console.log("[field]", obj);
+  return Object.keys(obj).length > 0 ? obj : false;
+}
+
+/**
  * getAllData()
  * @param {ServerSDK.DB.CollectionReference} collect 需要分组获取的 collction
  * @param {Number} offset 从第offset条开始读取
@@ -288,8 +312,8 @@ async function readMain(event) {
   }
 
   // 设置返回字段
-  if (event.hasOwnProperty("field") && Object.keys(event.field).length)
-    c = c.field(event.field);
+  const field = toField(event.field)
+  if (field !== false) c = c.field(field);
 
   // 获取数据并返回
   if (event.isDoc) {

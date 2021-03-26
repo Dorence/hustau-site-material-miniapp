@@ -21,6 +21,7 @@ Page({
       offset: 7
     }]
   },
+
   /**
    * 加载页面
    */
@@ -28,6 +29,10 @@ Page({
     this.updateTable();
   },
 
+  /**
+   * 日期选择器回调
+   * @param {Object} e event
+   */
   bindDateChange(e) {
     console.log("[bindDateChange]", e.detail);
     if (e.detail.value !== this.data.date) {
@@ -39,14 +44,16 @@ Page({
     }
   },
 
+  /**
+   * quickDate 按钮组回调
+   * @param {Object} e event
+   */
   quickDateChange(e) {
     const dataset = e.currentTarget.dataset || {}; // get data-*
     console.log("[quickDateChange]", dataset);
 
     if (dataset.offset) {
-      let d = new Date(this.data.date);
-      d.setDate(d.getDate() + dataset.offset);
-      // console.log("date", this.data.date, "next", d);
+      let d = app._dayOffset(this.data.date, dataset.offset);
       this.setData({
         date: app._toDateStr(d, true),
         listData: []
@@ -63,42 +70,46 @@ Page({
   },
 
   /** 
-   * get database 
+   * Get borrowed classroom list on this.data.date
    */
-  updateTable() {
+  async updateTable() {
     const that = this;
     wx.showLoading({
       mask: true,
       title: "Loading"
     });
 
-    return wx.cloud.callFunction({
-      name: "operateForms",
-      data: {
-        caller: "listBorrow",
-        collection: app.globalData.dbFacFormCollection,
-        filter: {
-          exam: 3,
-          date: this.data.date
-        },
-        operate: "read"
-      }
-    }).then(res => {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: "operateForms",
+        data: {
+          caller: "facQuery",
+          collection: app.globalData.dbFacFormCollection,
+          field: {
+            facQueryBasic: true
+          },
+          filter: {
+            exam: 3,
+            date: this.data.date
+          },
+          operate: "read"
+        }
+      });
+
       console.log("[updateTable]", res);
       wx.hideLoading();
 
       let x = res.result.data;
       if (x && x.length) {
-        let arr = [];
-        for (let i in x) {
-          arr.push({
-            association: x[i].event.association,
-            room: x[i].classroomNumber,
-            time: x[i].eventTime1 + "\t~ " + x[i].eventTime2,
-            responser: x[i].event.responser,
-            tel: x[i].event.tel
-          });
-        }
+        let arr = x.map(it => {
+          return {
+            association: it.event.association,
+            room: it.classroomNumber,
+            time: it.eventTime1 + " ~ " + it.eventTime2,
+            responser: it.event.responser,
+            tel: it.event.tel
+          };
+        });
         arr.sort((_x, _y) => {
           return (
             (_x.room === _y.room) ? (_x.time < _y.time) : (_x.room < _y.room)
@@ -110,9 +121,7 @@ Page({
       } else {
         wx.showToast({
           title: "当日无借用",
-          icon: "success",
-          mask: false,
-          duration: 800
+          duration: 500
         });
         that.setData({
           listData: [{
@@ -124,7 +133,9 @@ Page({
           }]
         });
       }
-    }).catch(console.error);
+    } catch (err) {
+      console.error("[updateTable]", err);
+    }
+    return this;
   }
-
 })

@@ -112,6 +112,7 @@ Page({
 
   /**
    * 链接至 listApproval
+   * @param {Object} e event
    */
   navToApproval(e) {
     const dataset = e.currentTarget.dataset;
@@ -129,7 +130,7 @@ Page({
    * 
    * @note aggregate 聚合查询
    *   -> project 流水线输入映射为新字段（将 submitDate 转换为字符串）
-   *   -> match 流水线筛选符合条件的输入，不能比较 Date 类型
+   *   -> match 流水线筛选符合条件的输入，不能比较 Date 类型（筛选一年内的）
    *   -> sortByCount 流水线分类统计数量
    *   -> end 结束聚合查询
    */
@@ -137,26 +138,27 @@ Page({
     const _ = db.command;
     let res = await db.collection(collection).aggregate()
       .project({
-        exam: "$exam",
+        exam: "$" + key,
         submitDate: _.aggregate.dateToString({
           date: "$submitDate",
           format: "%Y-%m-%d"
         })
       })
       .match({
-        submitDate: _.gte(app._toDateStr(app._dayOffset(new Date(), -365), true))
+        submitDate: _.gte(app._toDateStr(app._dayOffset(new Date(), -366), true))
       })
-      .sortByCount("$exam")
+      .sortByCount("$" + key)
       .end();
 
     let table = this.data[key].slice();
     for (let i in table) table[i].num = 0;
     for (let it of res.list) table[it._id].num = it.count;
-    // console.log("[res]", res, "[table]", table);
+    
+    console.log("[updateNumber]", res, table);
     this.setData({
       [key]: table
-    })
-    return table;
+    });
+    return this;
   },
 
   /** 
@@ -207,28 +209,33 @@ Page({
       return false;
   },
 
-  /** 调用云函数登录并修改页面状态 */
-  callCloudLogin(isShowToast = true) {
+  /**
+   * 调用云函数登录, 并修改页面状态
+   */
+  async callCloudLogin(isShowToast = true) {
     const that = this;
-    wx.cloud.callFunction({
-      name: "login",
-      data: {}
-    }).then(res => {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: "login",
+        data: {}
+      });
       console.log("[login]", res.result);
+
       if (isShowToast)
         wx.showToast({
           title: "登录成功",
           icon: "success"
         });
+
       res.result.isLogin = true;
-      that.updateUserInfo(res.result).then(() => {
-        that.getUserInfo();
-        // 如果是管理员, 获取各状态的数量
-        if (that.isUserAdmin()) {
-          that.updateNumber(app.globalData.dbFacFormCollection, "exam");
-        }
-      });
-    }).catch(err => {
+      await this.updateUserInfo(res.result);
+      this.getUserInfo();
+      // 如果是管理员, 获取各状态的数量
+      if (this.isUserAdmin()) {
+        this.updateNumber(app.globalData.dbFacFormCollection, "exam");
+      }
+
+    } catch (err) {
       console.error("[login]", err);
       if (isShowToast) {
         wx.showToast({
@@ -240,7 +247,7 @@ Page({
       that.updateUserInfo({
         isLogin: false
       });
-    });
+    }
   },
 
   // ListTouch触摸开始

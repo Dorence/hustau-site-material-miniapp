@@ -101,7 +101,7 @@ App({
 
   /**
    * 返回距 date 有 offset 天的日期
-   * @param {Date} date 
+   * @param {Date|String|Number} date Date对象|时间字符串|时间戳
    * @param {Number} offset = 0
    */
   _dayOffset(date, offset = 0) {
@@ -110,7 +110,7 @@ App({
       return false;
     }
     let d = new Date(date);
-    d.setDate(date.getDate() + offset);
+    d.setDate(d.getDate() + offset);
     return d;
   },
 
