@@ -78,7 +78,7 @@
         <view class="weui-cell__bd">
           <textarea class="weui-textarea" name="eventContent" placeholder="请输入详细活动内容" maxlength="{{maxContentLength}}"
             bindinput="contentInput" />
-          <view class="weui-textarea-counter">{{contentLength}}/{{maxContentLength}}</view>
+          <view class="weui-textarea-counter">{{contentLength}}/{{showContentMinLength ? minContentLength : maxContentLength}}</view>
           </view>
       </view>
     </view>
@@ -90,7 +90,7 @@
           <view class="weui-label">活动负责人</view>
         </view>
         <view class="weui-cell__ft">
-          <input class="weui-input" name="eventResponser" placeholder="负责人姓名" />
+          <input class="weui-input" name="responser" placeholder="负责人姓名" />
         </view>
       </view>
       <view class="weui-cell weui-cell_input">

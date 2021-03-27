@@ -1,7 +1,6 @@
 // pages/facilities/borrow/form.js
 const app = getApp();
 const db = wx.cloud.database();
-const forms = db.collection(app.globalData.dbFacFormCollection);
 
 Page({
   data: {
@@ -24,8 +23,15 @@ Page({
     adminRange: ["加载中"],
     adminIndex: 0,
     adminList: [],
-    maxContentLength: 300,
-    contentLength: 0 // textarea
+
+    timeCheckMode: "warning", // "none" | "warning" | "blocking"
+    timeCheckWarnText: "申请时间与其他已通过申请冲突",
+
+    // textarea length
+    showContentMinLength: false,
+    maxContentLength: 400,
+    minContentLength: 0,
+    contentLength: 0
   },
 
   /**
@@ -50,26 +56,79 @@ Page({
    * 校验数据并生成对应的数据库对象
    * @param {object} data submit时表单的数据
    */
-  toFormObject(data) {
+  async toFormObject(data) {
     const p = this.data;
+    console.log("[toFormObject]", data, p);
+
+    // return value
+    let ret = {
+      eventDate: data.eventDate,
+      exam: 0,
+      _openid: app.loginState.openid
+    };
+
+    // classroom
     if (!p.index) return {
       err: "请选择教室"
     };
+    ret.classroomNumber = p.facRoomList[p.index];
 
     // trim and judge
     const trimArr = [
       ["associationName", "单位名称"],
       ["eventName", "活动名称"],
-      ["eventResponser", "活动负责人"],
+      ["responser", "活动负责人"],
       ["eventContent", "活动内容"]
     ];
-    for (let i = 0; i < trimArr.length; i++) {
-      data[trimArr[i][0]] = data[trimArr[i][0]].trim();
-      if (!data[trimArr[i][0]]) return {
-        err: "请填写" + trimArr[i][1]
+    for (let item of trimArr) {
+      data[item[0]] = data[item[0]].trim();
+      if (!data[item[0]]) return {
+        err: "请填写" + item[1]
       };
     }
     // end trim and judge
+
+    // get event time
+    ret.eventTime1 = p.timeArr[0][p.timeAIndex[0]] + ":" + p.timeArr[1][p.timeAIndex[1]];
+    ret.eventTime2 = p.timeArr[0][p.timeBIndex[0]] + ":" + p.timeArr[1][p.timeBIndex[1]];
+
+    const par = (_x) => {
+      return [
+        _x.eventTime1.length === 4 ? "0" + _x.eventTime1 : _x.eventTime1,
+        _x.eventTime2.length === 4 ? "0" + _x.eventTime2 : _x.eventTime2
+      ];
+    };
+
+    if (p.timeCheckMode !== "none") {
+      const v = par(ret);
+      // get borrowed list
+      let res = await db.collection(app.globalData.dbFacFormCollection)
+        .where({
+          classroomNumber: ret.classroomNumber,
+          eventDate: ret.eventDate,
+          exam: 3
+        }).field({
+          eventTime1: true,
+          eventTime2: true
+        }).get();
+      // console.log("[res]", res);
+
+      for (let it of res.data) {
+        let t = par(it);
+        // console.log(t, v);
+        if ((t[0] < v[0] && t[1] > v[0]) || (t[0] >= v[0] && t[0] < v[1])) {
+          if (p.timeCheckMode === "blocking") {
+            return {
+              err: p.timeCheckWarnText
+            };
+          } else {
+            ret.warn = p.timeCheckWarnText;
+            break;
+          }
+        }
+        // end for
+      }
+    }
 
     data.attendNumber = Number(data.attendNumber);
     if (!data.attendNumber || data.attendNumber < 0) return {
@@ -79,35 +138,39 @@ Page({
     if (!/^\d{11}$/.test(data.phone)) return {
       err: "请填写正确的手机号"
     };
-    return {
-      classroomNumber: p.facRoomList[p.index],
-      eventDate: p.date,
-      eventTime1: p.timeArr[0][p.timeAIndex[0]] + ":" + p.timeArr[1][p.timeAIndex[1]],
-      eventTime2: p.timeArr[0][p.timeBIndex[0]] + ":" + p.timeArr[1][p.timeBIndex[1]],
-      event: {
-        association: data["associationName"],
-        attendNumber: Number(data["attendNumber"]),
-        content: data["eventContent"],
-        name: data["eventName"],
-        responser: data["eventResponser"],
-        tel: data.phone
-      },
-      exam: 0,
-      _openid: app.loginState.openid
+
+    const ctxlen = data.eventContent.length;
+    if (this.data.minContentLength > 0 && ctxlen < this.data.minContentLength) return {
+      err: `活动内容不能少于${this.data.minContentLength}字`
+    }
+
+    if (this.data.maxContentLength > 0 && ctxlen > this.data.maxContentLength) return {
+      err: `活动内容不能多于${this.data.maxContentLength}字`
+    }
+
+    ret.event = {
+      association: data["associationName"],
+      attendNumber: data.attendNumber,
+      content: data.eventContent,
+      name: data["eventName"],
+      responser: data.responser,
+      tel: data.phone
     };
+
+    return ret;
   },
 
   /**
-   * Submit the form.
+   * Submit the form, request for subscribing message
    * @param {object} e event
    */
-  submit(e) {
+  async submit(e) {
     const data = e.detail.value;
     const that = this;
 
     console.log("[submit]", data);
 
-    let formObj = this.toFormObject(data);
+    let formObj = await this.toFormObject(data);
 
     // has error
     if (formObj.hasOwnProperty("err")) {
@@ -120,18 +183,37 @@ Page({
       return false;
     }
 
-    // subscribe, must by a tap
-    wx.showModal({
-      title: "温馨提示",
-      content: "即将请求一次消息权限，用于通知您的审批结果",
-      showCancel: false,
-      complete() {
-        that.subMsg([app.globalData.submsgTmplId.apprResult], res => {
-          formObj.isSubMsg = res === "accept";
-          that.submitAppr(formObj);
-        });
-      }
-    });
+    const cb = () => {
+      // subscribe, must be triggered by a tap
+      wx.showModal({
+        title: "温馨提示",
+        content: "即将请求一次消息权限，用于通知您的审批结果",
+        showCancel: false,
+        complete() {
+          that.subMsg(
+            [app.globalData.submsgTmplId.apprResult],
+            res => {
+              formObj.isSubMsg = res === "accept";
+              that.submitAppr(formObj);
+            }
+          );
+        }
+      });
+    };
+
+    if (formObj.hasOwnProperty("warn"))
+      wx.showModal({
+        title: "注意",
+        content: formObj.warn,
+        cancelText: "再去改改",
+        confirmText: "仍要提交",
+        success(res) {
+          delete formObj.warn; // remove warning text
+          if (res.confirm) cb();
+        }
+      });
+    else
+      cb();
   },
 
   /**
@@ -177,7 +259,7 @@ Page({
     });
   },
 
-  submitAppr(formObj) {
+  async submitAppr(formObj) {
     // add a mask to prevent multiple submissions
     wx.showLoading({
       mask: true,
@@ -200,11 +282,12 @@ Page({
       };
     }
 
-    return wx.cloud.callFunction({
-      name: "operateForms",
-      data: data
-    }).then(res => {
-      console.log("[submitAppr]Success", res);
+    try {
+      const res = await wx.cloud.callFunction({
+        name: "operateForms",
+        data: data
+      });
+      console.log("[submitAppr]", res);
       wx.hideLoading();
       wx.showModal({
         title: "提交成功",
@@ -216,16 +299,19 @@ Page({
           });
         }
       });
-    }).catch(err => {
-      console.error("[submitAppr]failed", err);
-    });
+    } catch (err) {
+      console.error("[submitAppr]", err);
+    }
+
+    return this;
   },
 
   /**
    * 活动日期picker改变的函数
+   * @param {Object} e event
    */
   bindDateChange(e) {
-    console.log("eventDate发送选择改变，携带值为", e.detail.value);
+    console.log("[bindDateChange]", e.detail.value);
     this.setData({
       date: e.detail.value
     });
@@ -320,16 +406,16 @@ Page({
         return;
       }
 
-      let data = res.result.admin;
-      data.sort((x, y) => x.name < y.name ? -1 : 1);
+      let admin = res.result.admin;
+      admin.sort((x, y) => x.name < y.name ? -1 : 1);
 
       let room = res.result.facRoomList;
       room.unshift("请选择");
-      
+
       this.setData({
         adminState: this.data.adminState >= 0 ? 1 : -1,
-        adminList: data,
-        adminRange: data.map(_x => _x.name),
+        adminList: admin,
+        adminRange: admin.map(_x => _x.name),
         facRoomList: room
       });
     } catch (err) {
