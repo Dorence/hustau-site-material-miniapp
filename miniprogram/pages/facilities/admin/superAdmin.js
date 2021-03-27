@@ -7,7 +7,8 @@ Page({
   data: {
     userList: [],
     showAddInput: false,
-    newToken: ""
+    newToken: "",
+    maxUserListLength: 10
   },
 
   /**
@@ -146,8 +147,16 @@ Page({
    */
   tapAddToken() {
     const v = this.data.newToken;
-    console.info(v);
-    if (v && v.length === 6 && this.data.userList.length < 4) {
+    console.log("[tapAddToken]", v);
+    if (!v || v.length !== 6) {
+      wx.showToast({
+        title: "请输入六位数字",
+        icon: "none"
+      })
+      return false;
+    }
+
+    if (this.data.userList.length < this.data.maxUserListLength) {
       let list = this.data.userList;
       list.push({
         token: v,

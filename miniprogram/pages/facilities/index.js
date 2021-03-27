@@ -257,7 +257,10 @@ Page({
     });
   },
 
-  // ListTouch计算方向. < 0: left, > 0 : right
+  /**
+   * ListTouch 计算方向, < 0: left, > 0 : right
+   * @param {Object} e event
+   */
   ListTouchMove(e) {
     this.setData({
       "touch.direction": e.touches[0].pageX - this.data.touch.start
@@ -274,7 +277,10 @@ Page({
     });
   },
 
-  // ListTouch按下扫码
+  /**
+   * ListTouch 按下扫码
+   * @param {Object} e event 
+   */
   ListTouchScan(e) {
     const that = this;
     if (!this.data.isLogin) {
@@ -289,7 +295,7 @@ Page({
       onlyFromCamera: true,
       scanType: ["qrCode"],
       success(res) {
-        console.log(res);
+        console.log("[scanCode]", res);
         if (res.scanType === "QR_CODE" && res.result) {
           // scan success
           that.handleScanSuccess(res.result);
@@ -316,9 +322,9 @@ Page({
    * @param {String} code 二维码译码结果
    */
   handleScanSuccess(code) {
-    if (this.data.isLogin && /[0-9A-Za-z_-]{28},\d{6},\d+/.test(code)) {
+    if (this.data.isLogin && /^[0-9a-z_-]{28},\d{6},\d+$/i.test(code)) {
       wx.navigateTo({
-        url: "superAdmin/userBind?&code=" + code
+        url: "admin/userBind?&code=" + code
       });
     } else {
       wx.showToast({

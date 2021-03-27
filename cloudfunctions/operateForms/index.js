@@ -15,6 +15,8 @@ const submsg = require("./message.js");
  */
 const collectionList = [CFG.dbAdminCollection, CFG.dbFacFormCollection, CFG.dbMatAddItemCollection, CFG.dbMatBorrowCollection, CFG.dbMatItemsCollection];
 
+const DocIdLength = [16, 32, 36, 48]; // 数据库记录 _id 的合理值（随时都可能扩容） 
+
 /** 
  * 用于检查 coName 是否是合法的 collection 名
  * @param {String} coName - 待检测的名称
@@ -296,7 +298,7 @@ async function readMain(event) {
   // 设置取值
   if (event.isDoc) {
     // 取单个记录
-    if (!utils.isIDString(event.docID, [16, 32, 36]))
+    if (!utils.isIDString(event.docID, DocIdLength))
       return {
         err: true,
         errMsg: "Error docID format.",
@@ -384,7 +386,7 @@ async function updateMain(event) {
   // 设置取值
   if (event.isDoc) {
     // 取单个记录
-    if (!utils.isIDString(event.docID, [16, 32, 36]))
+    if (!utils.isIDString(event.docID, DocIdLength))
       return {
         err: true,
         errMsg: "Error docID format.",
@@ -419,7 +421,7 @@ async function updateMain(event) {
 
     case "updateMatBorrowAppr": {
       let item = event.extrainfo.itemDoc;
-      if (!utils.isIDString(item, [16, 32, 36]))
+      if (!utils.isIDString(item, DocIdLength))
         return new utils.EMsg("Cannot index item.");
       item = db.collection(CFG.dbMatItemsCollection).doc(item);
 
@@ -629,7 +631,9 @@ async function bindUserMain(event) {
   let c = db.collection(event.collection);
 
   // 设置 管理员openid
-  if (!utils.isIDString(event.filter.superOpenid, [28])) return new utils.EMsg("Invalid user.");
+  if (!utils.isIDString(event.filter.superOpenid, [28]))
+    return new utils.EMsg("Invalid user.");
+
   return await c.where({
     openid: event.filter.superOpenid
   }).limit(1).get().then(resSuper => {
@@ -731,12 +735,10 @@ async function removeMain(event) {
   // 设置取值
   if (event.isDoc) {
     // 删除单个记录
-    if (!utils.isIDString(event.docID, [16, 32, 36]))
-      return {
-        err: true,
-        errMsg: "Error docID format.",
-        doc: event.docID
-      };
+    if (!utils.isIDString(event.docID, DocIdLength))
+      return new utils.EMsg("Invalid docID format.")
+        .append("doc", event.docID);
+
     c = c.doc(event.docID);
   } else {
     // 删除多条记录

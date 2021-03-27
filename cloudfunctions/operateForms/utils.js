@@ -55,6 +55,11 @@
     this.errMsg = msg;
   };
 
+  U.EMsg.prototype.append = function (key, value) {
+    this[key] = value;
+    return this;
+  }
+
   /**
    * 返回填充至指定长度的字符串
    * @param {any} data 
