@@ -1,4 +1,4 @@
-<!--facilities/superAdmin/userBind.wxml-->
+<!-- pages/facilities/admin/userBind.wxml -->
 <view class="page">
   <view class="page__hd">
     <view class="page__title">绑定</view>
@@ -11,7 +11,7 @@
           <view class="weui-label">验证码</view>
         </view>
         <view class="weui-cell__ft">
-          <input class="weui-input" name="token" type="number" maxlength="6" placeholder="请输入数字验证码" />
+          <input class="weui-input" name="token" type="number" maxlength="6" placeholder="请输入验证码" />
         </view>
       </view>
       <view class="weui-cell weui-cell_input">

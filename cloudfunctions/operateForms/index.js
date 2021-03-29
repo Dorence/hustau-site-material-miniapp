@@ -630,97 +630,84 @@ async function bindUserMain(event) {
     return new utils.EMsg("No such collection");
   let c = db.collection(event.collection);
 
-  // 设置 管理员openid
-  if (!utils.isIDString(event.filter.superOpenid, [28]))
+  // 检查 superAdmin openid
+  if (!utils.isIDString(event.extrainfo.superOpenid, [28]))
     return new utils.EMsg("Invalid user.");
 
-  return await c.where({
-    openid: event.filter.superOpenid
-  }).limit(1).get().then(resSuper => {
-    /** cb of get */
-    console.log("[super]", resSuper);
+  const resSuper = await c.where({
+    isSuper: true,
+    openid: event.extrainfo.superOpenid
+  }).limit(1).get();
+  console.log("[resSuper]", resSuper);
 
-    if (resSuper.data && resSuper.data.length === 1) {
-      let superUser = resSuper.data[0],
-        l = superUser.tokens.length;
+  if (resSuper.data.length === 0)
+    return new utils.EMsg("No such superAdmin.");
 
-      for (let i = 0; i < l; i++)
-        if (superUser.tokens[i].key === event.filter.key) {
-          // token found
-          superUser.tokens[i].key = "expired=" + (new Date().getTime()) + ";" + Math.random();
-          superUser.tokens[i].name = event.update.name;
-          superUser.tokens[i].tel = event.update.tel;
-          superUser.tokens[i].openid = event.openid;
+  const superUser = resSuper.data[0];
 
-          // update superUser
-          return c.doc(superUser._id).update({
-            data: {
-              tokens: superUser.tokens
-            }
-          }).then(retUpdate => {
-            /** return of update superUser */
-            console.log("[update super]", retUpdate);
-            if (retUpdate.stats.updated === 1) {
-              return c.where({
-                openid: event.openid
-              }).count().then(resCnt => {
-                console.log("[update count]", resCnt);
-                if (resCnt.total > 0) {
-                  // User existed, update a doc
-                  return c.where({
-                    openid: event.openid
-                  }).update({
-                    data: {
-                      name: event.update.name,
-                      openid: event.openid,
-                      tel: event.update.tel,
-                      isAdmin: superUser.tokens[i].isAdmin
-                    }
-                  }).then(res => {
-                    console.log("[update user]", res);
-                    return {
-                      err: false,
-                      errMsg: res.errMsg,
-                      updated: res.stats.updated
-                    }
-                  }).catch(err => {
-                    console.error("[update user err]", err);
-                    return new utils.EMsg(err.errMsg);
-                  });
-                } else {
-                  // User does not exist, add a doc
-                  return c.add({
-                    data: {
-                      name: event.update.name,
-                      openid: event.openid,
-                      tel: event.update.tel,
-                      isAdmin: superUser.tokens[i].isAdmin
-                    }
-                  }).then(res => {
-                    console.log("[add user]", res);
-                    return {
-                      err: false,
-                      updated: 1,
-                      errMsg: res.errMsg
-                    }
-                  }).catch(err => {
-                    console.error("[add user err]", err);
-                    return new utils.EMsg(err.errMsg);
-                  });
-                }
-              });
-            } else return new utils.EMsg("Write database error.");
-            /** end return of update superUser */
-          });
+  const k = superUser.tokens.map(_x => _x.key).indexOf(event.extrainfo.key);
+  if (k < 0) // key not found
+    return new utils.EMsg("Invalid request.");
+
+  // update superUser
+  try {
+    const resUpdate = await c.doc(superUser._id).update({
+      data: {
+        [`tokens.${k}`]: {
+          key: "expired=" + (new Date().getTime()) + ";" + Math.random(),
+          name: event.update.name,
+          tel: event.update.tel,
+          openid: event.openid
         }
-      /** end for */
+      }
+    });
 
-      return new utils.EMsg("Invalid request."); // not found
+    console.log("[resUpdate]", resUpdate);
+    if (resUpdate.stats.updated !== 1)
+      return new utils.EMsg("Update failed.");
+
+    const resCnt = c.where({
+      openid: event.openid
+    }).count();
+    console.log("[resCnt]", resCnt);
+
+    let data = {
+      isAdmin: superUser.tokens[k].isAdmin,
+      isSuper: false,
+      name: event.update.name,
+      openid: event.openid,
+      showFacAppr: true,
+      tel: event.update.tel
+    };
+    data = {
+      data: data
+    };
+
+    if (resCnt.total > 0) {
+      // User exists, update a doc
+      const resUp = await c.where({
+        openid: event.openid
+      }).update(data);
+      console.log("[resUp]", resUp);
+      return {
+        err: false,
+        errMsg: resUp.errMsg,
+        updated: resUp.stats.updated
+      };
     } else {
-      return new utils.EMsg("Invalid user.");
+      // User not exist, add a doc
+      const resAdd = await c.add(data);
+      console.log("[resAdd]", resAdd);
+      return {
+        err: false,
+        errMsg: resAdd.errMsg,
+        updated: 1
+      }
     }
-    /** end cb of get */
-  });
+
+  } catch (err) {
+    return new utils.EMsg("Update error.");
+  }
 }
 
 /**

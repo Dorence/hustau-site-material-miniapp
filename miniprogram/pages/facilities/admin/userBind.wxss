@@ -1,2 +1,2 @@
-/* pages/facilities/superAdmin/userBind.wxss */
+/* pages/facilities/admin/userBind.wxss */
 @import "../../../assets/weui.wxss";
