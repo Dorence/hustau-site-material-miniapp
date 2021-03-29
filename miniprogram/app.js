@@ -18,7 +18,6 @@ App({
  6. 如有任何疑问，请联系36号楼教室借用负责人董雨奇: 13050977519。
     `
   },
-  globalForm: {},
   onLaunch() {
     if (!wx.cloud) {
       console.error("请使用 2.2.3 或以上的基础库以使用云能力");
@@ -34,7 +33,6 @@ App({
       env: CFG.cloudEnv,
       traceUser: true,
     });
-
     for (let item in CFG)
       this.globalData[item] = CFG[item];
   },

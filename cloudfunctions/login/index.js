@@ -42,9 +42,9 @@ exports.main = async (event, context) => {
       };
 
       /**
-       * 判断用户身份:isAdmin\isSuper
-       * 添加到ret:name, isSuper, (userlist)
-       * @function user judge
+       * 用户鉴权
+       * isAdmin -> name, isSuper?
+       * isSuper -> userlist (= tokens)
        */
       if (ret.isAdmin) {
         ret.name = r.data[0].name;

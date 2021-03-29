@@ -44,14 +44,14 @@
       <view class="weui-cell weui-cell_input">
         <view class="weui-cell__bd">活动时间</view>
         <view class="weui-cell__bd">
-          <picker mode="multiSelector" value="{{timeAIndex}}" range="{{timeArr}}" bindchange="bindTimeChange1"
+          <picker mode="multiSelector" value="{{timeAIndex}}" range="{{timeArr}}" bindchange="bindTimeAChange"
             bindcolumnchange="bindTimeColChange">
             <view class="weui-input">{{timeArr[0][timeAIndex[0]]}}:{{timeArr[1][timeAIndex[1]]}}</view>
           </picker>
         </view>
         <text class="weui-cell__bd">至</text>
         <view class="weui-cell__ft">
-          <picker mode="multiSelector" value="{{timeBIndex}}" range="{{timeArr}}" bindchange="bindTimeChange2"
+          <picker mode="multiSelector" value="{{timeBIndex}}" range="{{timeArr}}" bindchange="bindTimeBChange"
             bindcolumnchange="bindTimeColChange">
             <view class="weui-input">{{timeArr[0][timeBIndex[0]]}}:{{timeArr[1][timeBIndex[1]]}}</view>
           </picker>

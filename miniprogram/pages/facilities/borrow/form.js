@@ -24,7 +24,7 @@ Page({
     adminIndex: 0,
     adminList: [],
 
-    timeCheckMode: "warning", // "none" | "warning" | "blocking"
+    timeCheckMode: "none", // "none" | "warning" | "blocking"
     timeCheckWarnText: "申请时间与其他已通过申请冲突",
 
     // textarea length
@@ -259,6 +259,10 @@ Page({
     });
   },
 
+  /**
+   * 调用云函数提交
+   * @param {Object}} formObj 待提交表单
+   */
   async submitAppr(formObj) {
     // add a mask to prevent multiple submissions
     wx.showLoading({
@@ -318,59 +322,66 @@ Page({
   },
 
   /**
-   * 活动开始时间picker改变
+   * 活动开始时间 picker 改变
+   * @param {Object} e event
    */
-  bindTimeChange1(e) {
-    const value = e.detail.value,
+  bindTimeAChange(e) {
+    const A = e.detail.value,
       B = this.data.timeBIndex;
-    console.log("[bindTimeChange1]", value);
-    // 检查time2是否大于time1, 若小于则令time2等于time1
-    if (B[0] < value[0] || (B[0] == value[0] && B[1] == value[1])) {
+    console.log("[bindTimeAChange]", A);
+    // 若 time2 < time1, 则 time2 = time1
+    if (B[0] < A[0] || (B[0] === A[0] && B[1] < A[1])) {
       this.setData({
-        timeAIndex: value,
-        timeBIndex: value
+        timeAIndex: A,
+        timeBIndex: A
       });
     } else {
       this.setData({
-        timeAIndex: value
+        timeAIndex: A
       });
     }
   },
 
   /**
-   * 活动结束时间picker改变
+   * 活动结束时间 picker 改变
+   * @param {Object} e event
    */
-  bindTimeChange2(e) {
-    const value = e.detail.value,
+  bindTimeBChange(e) {
+    const B = e.detail.value,
       A = this.data.timeAIndex;
-    console.log("[bindTimeChange1]", value);
-    // 检查time2是否大于time1, 若小于则令time2等于time1
-    if (A[0] < value[0] || (A[0] == value[0] && A[1] < value[1])) {
-      this.setData({
-        timeBIndex: value
-      });
-    } else {
+    console.log("[bindTimeBChange]", B);
+    // 若 time2 < time1, 则 time2 = time1
+    if (B[0] < A[0] || (B[0] === A[0] && B[1] < A[1])) {
       this.setData({
         timeBIndex: A
       });
+    } else {
+      this.setData({
+        timeBIndex: B
+      });
     }
   },
 
   /**
-   * 多列picker的列响应, 无事件
+   * 多列 picker 的列响应, 无事件
    */
   bindTimeColChange() {},
 
   /**
-   * 借用教室picker改变的函数
+   * 借用教室 picker 改变
+   * @param {Object} e event
    */
-  bindNumberChange: function (e) {
+  bindNumberChange(e) {
     console.log("[bindNumberChange]", e.detail.value)
     this.setData({
       index: e.detail.value
     });
   },
 
+  /**
+   * 审核人 picker 改变
+   * @param {Object} e event
+   */
   bindAdminChange(e) {
     console.log("[bindAdminChange]", e.detail.value)
     this.setData({
@@ -385,9 +396,12 @@ Page({
   contentInput(e) {
     this.setData({
       contentLength: e.detail.value.length
-    })
+    });
   },
 
+  /**
+   * 获取教室和管理员列表
+   */
   async fetchFacData() {
     try {
       const res = await wx.cloud.callFunction({
@@ -400,15 +414,14 @@ Page({
           }
         }
       });
-      console.log("[fetchAdminList]res", res);
+      console.log("[fetchFacData]", res);
       if (res.result.err) {
         console.error(res.result.errMsg);
         return;
       }
 
       let admin = res.result.admin;
-      admin.sort((x, y) => x.name < y.name ? -1 : 1);
-
+      admin.sort((_x, _y) => _x.name < _y.name ? -1 : 1);
       let room = res.result.facRoomList;
       room.unshift("请选择");
 
@@ -419,7 +432,7 @@ Page({
         facRoomList: room
       });
     } catch (err) {
-      console.error("[fetchAdminList]failed", err);
+      console.error("[fetchFacData]", err);
     }
   }
 });
