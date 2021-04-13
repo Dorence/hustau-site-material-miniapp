@@ -1,6 +1,7 @@
 // pages/facilities/index.js
 const app = getApp();
 const db = wx.cloud.database();
+const LOGIN = require("../../assets/login.js");
 let Login = {};
 
 Page({
@@ -45,7 +46,7 @@ Page({
       title: app.globalData.facIndexTitle
     });
 
-    Login = require("../../assets/login.js").init(app, this);
+    Login = new LOGIN(app, this);
     Login.checkLogin();
   },
 
