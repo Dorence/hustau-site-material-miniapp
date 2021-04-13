@@ -1,8 +1,7 @@
 // pages/materials/index.js
 const app = getApp();
 const db = wx.cloud.database();
-
-let callLoginCnt = 0; // count times of calling Page.callCloudLogin
+let Login = {};
 
 Page({
   data: {
@@ -49,10 +48,9 @@ Page({
     wx.setNavigationBarTitle({
       title: app.globalData.matIndexTitle
     });
-    // 检查登录session
-    this.checkLogin();
-    // 获取用户信息
-    this.getUserInfo();
+
+    Login = require("../../assets/login.js").init(app, this);
+    Login.checkLogin();
   },
 
   onShow() {
@@ -74,7 +72,7 @@ Page({
    * 监听用户下拉刷新动作
    */
   onPullDownRefresh() {
-    Promise.all([this.checkLogin(), this.getUserInfo()]).then(() => {
+    Promise.all([Login.checkLogin()]).then(() => {
       wx.stopPullDownRefresh({
         complete() {
           console.log("[onPullDownRefresh] finish");
@@ -95,42 +93,24 @@ Page({
     }
   },
 
-  /**
-   * 检查是否有授权并获取 userInfo 
-   */
-  getUserInfo() {
-    const that = this;
-    wx.getSetting({
-      success(res) {
-        if (res.authSetting["scope.userInfo"]) {
-          // 已授权,可以直接调用 getUserInfo
-          wx.getUserInfo({
-            success(res) {
-              console.log("[getUserInfo] seccess", res);
-              that.setData(res.userInfo);
-            }
-          });
-        } else {
-          console.log("No auth to 'scope.userInfo'.");
-        }
-      }
-    });
-  },
-
   /** 
    * 登录按钮回调
    */
-  userLogin() {
-    if (app.loginState.isLogin === false) {
-      wx.login({
-        success: this.getUserInfo
-      });
-      this.callCloudLogin(true);
-    }
+  userProfile() {
+    Login.localLogin();
+  },
+
+  /**
+   * Login 模块调用 updateNumber
+   */
+  callUpdateNumber() {
+    this.updateNumber(app.globalData.dbMatBorrowCollection, "examBorrow");
+    this.updateNumber(app.globalData.dbMatAddItemCollection, "examAdd");
   },
 
   /**
    * 链接至 listApproval
+   * @param {Object} e event
    */
   navToApproval(e) {
     const dataset = e.currentTarget.dataset;
@@ -148,7 +128,7 @@ Page({
    * 
    * @note aggregate 聚合查询
    *   -> project 流水线输入映射为新字段（将 submitDate 转换为字符串）
-   *   -> match 流水线筛选符合条件的输入，不能比较 Date 类型
+   *   -> match 流水线筛选符合条件的输入，不能比较 Date 类型（筛选一年内的）
    *   -> sortByCount 流水线分类统计数量
    *   -> end 结束聚合查询
    */
@@ -163,7 +143,7 @@ Page({
         })
       })
       .match({
-        submitDate: _.gte(app._toDateStr(app._dayOffset(new Date(), -365), true))
+        submitDate: _.gte(app._toDateStr(app._dayOffset(new Date(), -366), true))
       })
       .sortByCount("$exam")
       .end();
@@ -171,97 +151,12 @@ Page({
     let table = this.data[key].slice();
     for (let i in table) table[i].num = 0;
     for (let it of res.list) table[it._id].num = it.count;
-    // console.log("[res]", res, "[table]", table);
+
+    console.log("[updateNumber]", res, table);
     this.setData({
       [key]: table
-    })
-    return table;
-  },
-
-  /** 
-   * 检查用户登录状态
-   */
-  checkLogin() {
-    const that = this;
-    wx.checkSession({
-      success(res) {
-        // session_key 未过期，并且在本生命周期一直有效
-        console.log("[checkSession] Has session.");
-        if (++callLoginCnt >= 3) {
-          console.warn("[checkLogin] times:", callLoginCnt);
-          Promise.resolve().then(() => {
-            setTimeout(() => {
-              that.callCloudLogin(false);
-            }, 50 * callLoginCnt * callLoginCnt);
-          });
-        } else {
-          that.callCloudLogin(false);
-        }
-      },
-      fail() {
-        console.log("[checkSession] User not log in.");
-        that.updateUserInfo({
-          isLogin: false
-        });
-      }
     });
-  },
-
-  /** 
-   * 更新全局变量 app.loginState
-   */
-  async updateUserInfo(obj) {
-    app.loginState = obj;
-    this.setData(obj);
     return this;
-  },
-
-  /** 
-   * 检查用户是否是管理员
-   */
-  isUserAdmin() {
-    if (app.loginState && typeof app.loginState === "object")
-      return app.loginState.isLogin && app.loginState.isAdmin;
-    else
-      return false;
-  },
-
-  /** 调用云函数登录并修改页面状态 */
-  callCloudLogin(isShowToast = true) {
-    const that = this;
-    wx.cloud.callFunction({
-      name: "login",
-      data: {}
-    }).then(res => {
-      console.log("[login]", res.result);
-      if (isShowToast)
-        wx.showToast({
-          title: "登录成功",
-          icon: "success"
-        });
-      res.result.isLogin = true;
-      that.updateUserInfo(res.result).then(() => {
-        that.getUserInfo();
-        // 如果是管理员, 获取各状态的数量
-        if (that.isUserAdmin()) {
-          that.updateNumber(app.globalData.dbMatBorrowCollection, "examBorrow");
-          that.updateNumber(app.globalData.dbMatAddItemCollection, "examAdd");
-        }
-        that.showRedDot();
-      });
-    }).catch(err => {
-      console.error("[login]", err);
-      if (isShowToast) {
-        wx.showToast({
-          title: "登录失败",
-          icon: "none",
-          duration: 2000
-        });
-      }
-      that.updateUserInfo({
-        isLogin: false
-      });
-    });
   },
 
   /**
@@ -287,6 +182,5 @@ Page({
         });
       }
     });
-  },
-
-})
+  }
+});

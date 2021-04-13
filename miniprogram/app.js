@@ -1,6 +1,5 @@
 // app.js
 const CFG = require("./config.js");
-// console.log(CFG);
 
 App({
   globalData: {
@@ -33,6 +32,9 @@ App({
       env: CFG.cloudEnv,
       traceUser: true,
     });
+    console.log("[cloud] init");
+
+    this._storage = require("./assets/storage.js");
     for (let item in CFG)
       this.globalData[item] = CFG[item];
   },

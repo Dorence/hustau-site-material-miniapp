@@ -5,8 +5,7 @@
   <!-- userinfo -->
   <view wx:if="{{isLogin}}" class="userinfo {{touch.class}}" bindtouchstart="ListTouchStart"
     bindtouchmove="ListTouchMove" bindtouchend="ListTouchEnd" data-target="move-cur">
-    <button class="userinfo-avatar" open-type="getUserInfo" bindgetuserinfo="getUserInfo"
-      style="background-image: url({{avatarUrl}})"></button>
+    <button class="userinfo-avatar" bindtap="userProfile" style="background-image: url({{avatarUrl}})"></button>
     <view class="userinfo-nickname">
       {{isAdmin ? name : nickName}}
     </view>
@@ -15,7 +14,7 @@
     </view>
   </view>
   <view wx:else style="padding: 5px;">
-    <button class="weui-btn" bindtap="userLogin" open-type="getUserInfo" type="primary">点击登录</button>
+    <button class="weui-btn" bindtap="userProfile" type="primary">点击登录</button>
   </view>
 
   <!-- 页面跳转列表 -->
