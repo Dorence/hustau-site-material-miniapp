@@ -19,3 +19,19 @@
 form .weui-cells__title {
     font-size: 16px;
 }
+
+form .title-space-between {
+    align-items: center;
+    color: #999;
+    display: flex;
+    font-size: 16px;
+    justify-content: space-between;
+    margin: .7em 0;
+    padding: 2px 15px;
+}
+
+form .title-space-between .weui-input {
+    height: 1.6em;
+    line-height: 1.6em;
+    min-height: 1.6em;
+}

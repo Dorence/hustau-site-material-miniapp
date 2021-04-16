@@ -5,7 +5,7 @@ const db = wx.cloud.database();
 Page({
   data: {
     apprList: [],
-    apprSort: 0,
+    apprSort: true,
     examState: app.globalData.facExamStr,
     advancedPanel: -1, // -1: disabled, 0: collapsed, 1: extended
     flagGet: -1,
@@ -171,7 +171,7 @@ Page({
   },
 
   /**
-   * 日期 picker1 改变的函数
+   * 日期 picker1 改变
    * @param {Object} e event
    */
   bindDateChange1(e) {
@@ -184,7 +184,7 @@ Page({
   },
 
   /**
-   * 日期 picker2 改变的函数
+   * 日期 picker2 改变
    * @param {Object} e event
    */
   bindDateChange2(e) {
@@ -197,13 +197,25 @@ Page({
   },
 
   /**
-   * 状态 picker 改变的函数
+   * 状态 picker 改变
    * @param {Object} e event
    */
   bindExamChange(e) {
     console.log("[bindExamChange]", e.detail.value);
     this.setData({
       exam: Number(e.detail.value)
+    });
+  },
+
+  /**
+   * 排序 switch 改变
+   * @param {Object} e event
+   */
+  bindSwitchChange(e) {
+    console.log("[bindSwitchChange]", e.detail.value);
+    this.setData({
+      apprSort: e.detail.value,
+      apprList: this.data.apprList.reverse()
     });
   },
 

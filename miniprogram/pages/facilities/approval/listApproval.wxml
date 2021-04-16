@@ -40,7 +40,7 @@
             </picker>
           </view>
         </view>
-        
+
         <view class="weui-cell weui-cell_input" style="padding-right: 0;">
           <view class="weui-cell__bd">状态</view>
           <view class="weui-cell__ft">
@@ -55,7 +55,13 @@
       <!-- form submit -->
       <button class="weui-btn" type="primary" form-type="submit" disabled="{{!canSubmit}}">查询</button>
 
-      <view class="weui-cells__title">筛选结果</view>
+      <view class="title-space-between">
+        <view>筛选结果</view>
+        <view class="weui-input">
+          <text decode>{{apprSort ? "顺序" : "倒序"}}&emsp;</text>
+          <switch checked bindchange="bindSwitchChange" />
+        </view>
+      </view>
     </form>
 
     <block wx:if="{{flagGet === 1}}">
@@ -66,7 +72,7 @@
             <text class="weui-form-preview__value_in-hd">{{it.classroomNumber}} {{it.eventDate}}</text>
           </view>
           <view class="weui-form-preview__item preview-in-hd">
-            <view class="weui-form-preview__label">{{i + 1}}/{{apprList.length}}</view>
+            <view class="weui-form-preview__label">{{apprSort ? (i + 1) : (apprList.length - i)}}/{{apprList.length}}</view>
             <text class="weui-form-preview__value">{{it.formid}}</text>
           </view>
         </view>
