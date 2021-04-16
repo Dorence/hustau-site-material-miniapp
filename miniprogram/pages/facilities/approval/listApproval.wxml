@@ -2,9 +2,62 @@
 <view class="page">
   <view class="page__hd">
     <view class="page__title">审批状态</view>
-    <view class="page__desc">{{expire}}内的审批</view>
+    <view class="page__desc">
+      <block wx:if="{{advancedPanel < 0}}">
+        {{expire}}内的审批
+      </block>
+      <view wx:else bindtap="toggleAdvancedPanel">
+        高级查询 {{caret}}
+      </view>
+    </view>
   </view>
   <view class="page__bd">
+    <form bindsubmit="submit" style="display: {{advancedPanel > 0 ? 'initial' : 'none'}};">
+      <view class="weui-cells__title">高级筛选</view>
+      <view class="weui-cells weui-cells_after-title">
+        <view class="weui-cell weui-cell_input">
+          <view class="weui-cell__bd">
+            <view class="weui-label">单位</view>
+          </view>
+          <view class="weui-cell__ft">
+            <input class="weui-input" name="associationIncl" placeholder="筛选申请单位" />
+          </view>
+        </view>
+
+        <view class="weui-cell weui-cell_input" style="padding-right: 0;">
+          <view class="weui-cell__bd">日期</view>
+          <view class="weui-cell__ft">
+            <picker mode="date" value="{{eventDate1}}" start="2019-01-01" end="2099-12-31" bindchange="bindDateChange1"
+              name="eventDate1">
+              <view class="weui-select no-before">{{eventDate1}}</view>
+            </picker>
+          </view>
+          <text class="weui-cell__ft">至</text>
+          <view class="weui-cell__ft">
+            <picker mode="date" value="{{eventDate1}}" start="2019-01-01" end="2099-12-31" bindchange="bindDateChange2"
+              name="eventDate2">
+              <view class="weui-select no-before">{{eventDate2}}</view>
+            </picker>
+          </view>
+        </view>
+        
+        <view class="weui-cell weui-cell_input" style="padding-right: 0;">
+          <view class="weui-cell__bd">状态</view>
+          <view class="weui-cell__ft">
+            <picker range="{{examFilter}}" value="{{exam}}" bindchange="bindExamChange" name="exam">
+              <view class="weui-select">{{examFilter[exam]}}</view>
+            </picker>
+          </view>
+        </view>
+
+      </view>
+
+      <!-- form submit -->
+      <button class="weui-btn" type="primary" form-type="submit" disabled="{{!canSubmit}}">查询</button>
+
+      <view class="weui-cells__title">筛选结果</view>
+    </form>
+
     <block wx:if="{{flagGet === 1}}">
       <view class="weui-form-preview" wx:for="{{apprList}}" wx:for-index="i" wx:for-item="it" wx:key="id">
         <view class="weui-form-preview__hd">
@@ -17,7 +70,7 @@
             <text class="weui-form-preview__value">{{it.formid}}</text>
           </view>
         </view>
-        <!-- end hd -->
+        <!-- end weui-form-preview__hd -->
         <view class="weui-form-preview__bd">
           <view class="weui-form-preview__item">
             <view class="weui-form-preview__label">借用时间</view>
@@ -36,12 +89,13 @@
             <view class="weui-form-preview__value">{{examState[it.exam]}}</view>
           </view>
         </view>
-        <!-- end bd -->
+        <!-- end weui-form-preview__bd -->
         <view class="weui-form-preview__ft">
           <navigator url="viewApproval?id={{it._id}}" class="weui-form-preview__btn weui-form-preview__btn_primary"
             hover-class="weui-form-preview__btn_active">
             {{it.exam > 1 ? "详细信息" : "去审批"}}</navigator>
         </view>
+        <!-- end weui-form-preview__ft -->
       </view>
       <!-- end wx:for -->
     </block>

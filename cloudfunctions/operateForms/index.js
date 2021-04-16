@@ -80,21 +80,31 @@ function toFilter(ft) {
         // eventDate : yyyy-MM-dd
         if (utils.isArray(ft.date)) {
           // [from, to]
-          if (ft.date.length !== 2) return false;
-          if (!utils.isDateString(ft.date[0]) || !utils.isDateString(ft.date[1]))
+          if (ft.date.length !== 2 || ft.date.some(_d => !utils.isDateString(_d)))
             return false;
-          obj.eventDate = db.command.gte(ft.date[0])
-            .and(db.command.lte(ft.data[0]));
+          obj.eventDate = db.command.gte(ft.date[0]).and(db.command.lte(ft.date[1]));
         } else if (utils.isDateString(ft.date)) {
           // exact one day
           obj.eventDate = ft.date;
-        } else return false;
+        } else {
+          return false;
+        }
         break; // date
 
       case "quantityGreaterThan":
         x = Number(ft.quantityGreaterThan);
         if (isNaN(x)) return false;
         obj.quantity = db.command.gt(x);
+        break;
+
+      case "associationIncl":
+        // part of associationName
+        if (ft[s]) {
+          obj["event.association"] = db.RegExp({
+            regexp: `.*(${ft[s]}).*`,
+            options: "si",
+          });
+        }
         break;
 
       case "_id":

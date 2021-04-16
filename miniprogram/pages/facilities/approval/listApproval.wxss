@@ -1,2 +1,21 @@
 /* pages/facilities/approval/listApproval.wxss */
 @import "../../common/progressList.wxss";
+
+.weui-cell__ft {
+    color: #000;
+}
+
+.weui-select.no-before {
+    border-right: none;
+    padding-right: 15px;
+    text-align: right;
+}
+
+.weui-select.no-before:before {
+    content: none;
+    width: 0;
+}
+
+form .weui-cells__title {
+    font-size: 16px;
+}

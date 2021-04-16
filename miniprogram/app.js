@@ -92,7 +92,7 @@ App({
   },
 
   /**
-   * 判断 n 是否为有限大数字
+   * 判断 n 是否为有限大 Number
    * @param {any} n 
    */
   _isNumeric(n) {
@@ -100,9 +100,9 @@ App({
   },
 
   /**
-   * 返回距 date 有 offset 天的日期
+   * 返回距 date 有 offset 天的 Date 实例
    * @param {Date|String|Number} date Date对象|时间字符串|时间戳
-   * @param {Number} offset = 0
+   * @param {Number} offset 偏移天数, 默认为 0
    */
   _dayOffset(date, offset = 0) {
     if (!this._isNumeric(offset)) {
