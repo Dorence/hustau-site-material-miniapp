@@ -51,8 +51,8 @@ Page({
         collection: app.globalData.dbAdminCollection,
         operate: "bindUser",
         update: {
-          name: formData.name,
-          tel: formData.tel
+          name: form.name,
+          tel: form.tel
         },
         extrainfo: {
           superOpenid: this.data.keys[0],
@@ -60,6 +60,8 @@ Page({
         }
       }
     }).then(res => {
+      console.log("[submit]", res);
+
       if (!res.result.err && res.result.updated === 1) {
         wx.showToast({
           title: "绑定成功",
@@ -70,12 +72,11 @@ Page({
           wx.navigateBack({
             delta: 1
           });
-        }, 3000);
+        }, 2600);
       } else {
         wx.showToast({
           title: "错误",
-          icon: "none",
-          duration: 2000
+          icon: "none"
         });
       }
     }).catch(err => {

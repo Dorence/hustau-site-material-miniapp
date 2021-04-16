@@ -123,8 +123,9 @@ Page({
 
       user.key = getRandKey(user.token);
       user.isAdmin = true;
-      console.info("key", user.key);
-      this.cloudSetUserlist(function () {
+      console.log("[key]", user.key);
+      this.cloudSetUserlist().then(res => {
+        console.log("[QRCode]", res);
         // render QR code
         QRCode.init("canvas", {
           text: user.key,
@@ -166,7 +167,7 @@ Page({
         openid: "",
         isAdmin: true
       });
-      this.cloudSetUserlist(() => {
+      this.cloudSetUserlist().then(res => {
         this.setData({
           userList: list,
           newToken: "",
@@ -178,9 +179,11 @@ Page({
   },
 
   /** set userList */
-  cloudSetUserlist(cb) {
-    const uList = this.data.userList;
-    wx.cloud.callFunction({
+  async cloudSetUserlist() {
+    let ret = false;
+
+    try {
+      let data = await wx.cloud.callFunction({
         name: "operateForms",
         data: {
           caller: "superReadUser",
@@ -193,47 +196,42 @@ Page({
             openid: true
           }
         }
-      }).then(getres => {
-        console.log(getres);
-        if (getres.result.data && getres.result.data[0]) {
-          const dat = getres.result.data[0];
-          // console.log("dat", dat);
-          /** @notice 'userList' stores in 'tokens', use: update: { tokens: ... }*/
-          wx.cloud.callFunction({
-            name: "operateForms",
-            data: {
-              caller: "superUpdateUser",
-              collection: app.globalData.dbAdminCollection,
-              docID: dat._id,
-              isDoc: true,
-              operate: "update",
-              update: {
-                tokens: uList
-              }
-            }
-          }).then(res => {
-            console.log(res);
-            if (!res.result.err && res.result.updated === 1) {
-              // ok
-              wx.showToast({
-                title: "OK",
-                icon: "success",
-                duration: 2000
-              });
-              return cb ? cb() : Promise.resolve(); // callback function
-            } else {
-              // error
-              wx.showToast({
-                title: "错误",
-                icon: "none",
-                duration: 2000
-              });
-            }
-          });
-        }
-      })
-      .catch(err => {
-        console.error(err)
       });
+      data = data.result.data;
+      console.log("[superReadUser]", data);
+      if (!Array.isArray(data) || data.length === 0)
+        return false;
+
+      /** @notice 'userList' stores in 'tokens', use: update: { tokens: ... }*/
+      const docId = data[0]._id;
+      const res = await wx.cloud.callFunction({
+        name: "operateForms",
+        data: {
+          caller: "superUpdateUser",
+          collection: app.globalData.dbAdminCollection,
+          docID: docId,
+          isDoc: true,
+          operate: "update",
+          update: {
+            tokens: this.data.userList
+          }
+        }
+      });
+      console.log("[superUpdateUser]", res);
+      ret = !res.result.err && res.result.updated === 1;
+    } catch (err) {
+      console.error("[cloudSetUserlist]", err);
+    }
+
+    if (ret) wx.showToast({
+      title: "OK",
+      icon: "success"
+    });
+    else wx.showToast({
+      title: "错误",
+      icon: "none"
+    });
+
+    return ret;
   }
 });

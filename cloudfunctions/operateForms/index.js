@@ -676,21 +676,20 @@ async function bindUserMain(event) {
     if (resUpdate.stats.updated !== 1)
       return new utils.EMsg("Update failed.");
 
-    const resCnt = c.where({
+    const resCnt = await c.where({
       openid: event.openid
     }).count();
     console.log("[resCnt]", resCnt);
 
     let data = {
-      isAdmin: superUser.tokens[k].isAdmin,
-      isSuper: false,
-      name: event.update.name,
-      openid: event.openid,
-      showFacAppr: true,
-      tel: event.update.tel
-    };
-    data = {
-      data: data
+      data: {
+        isAdmin: superUser.tokens[k].isAdmin,
+        isSuper: false,
+        name: event.update.name,
+        openid: event.openid,
+        showFacAppr: true,
+        tel: event.update.tel
+      }
     };
 
     if (resCnt.total > 0) {
