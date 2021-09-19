@@ -1,4 +1,4 @@
-/* pages/common/bigListItem.wxss */
+/* pages/common/bigList.wxss */
 
 .biglist-flex {
   display: flex;

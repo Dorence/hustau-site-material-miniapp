@@ -1,0 +1,18 @@
+/* pages/facilities/borrow/form.wxss */
+@import "../../../assets/weui.wxss";
+
+.page {
+  padding-bottom: 500rpx;
+}
+
+.page__hd {
+  padding: 15px 22px 10px;
+}
+
+.weui-cell__ft {
+  color: #000;
+}
+
+.weui-textarea {
+  height: 9.2em;
+}

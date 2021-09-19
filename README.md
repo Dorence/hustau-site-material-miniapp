@@ -84,7 +84,7 @@
 5. 管理员审批   
    各个类别显示对应表单 - 点击“去审批” - 跳转表单5   
    注：若是新增物资表单，管理员可以编辑物资名称/类别
-6*. 管理员编辑物资   
+6. (*)管理员编辑物资   
    当前版本要求：管理员选择某物资-修改物资数量/其他信息 - 弹窗确认 
 
 注：借用时数量可能与归还时不一致（部分消耗/遗失），只要归还时注明，得到管理员审批通过即可
@@ -154,4 +154,4 @@
 
 ## 参考文档
 
-+ [云开发文档](https://developers.weixin.qq.com/miniprogram/dev/wxcloud/basis/getting-started.html)
+- [云开发文档](https://developers.weixin.qq.com/miniprogram/dev/wxcloud/basis/getting-started.html)

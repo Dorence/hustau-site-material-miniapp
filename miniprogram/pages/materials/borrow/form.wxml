@@ -1,0 +1,121 @@
+<!-- pages/materials/borrow/form.wxml -->
+<view class="page">
+  <view class="page__hd">
+    <view class="page__title">物资借用填表</view>
+  </view>
+
+  <form class="page__bd" bindsubmit="submit">
+    <view class="weui-cells__title">基本信息</view>
+    <view class="weui-cells weui-cells_after-title">
+      <view class="weui-cell weui-cell_input">
+        <view class="weui-cell__bd">
+          <view class="weui-label">单位名称</view>
+        </view>
+        <view class="weui-cell__ft">
+          <input class="weui-input" name="association" placeholder="部门/协会名称"></input>
+        </view>
+      </view>
+
+      <view class="weui-cell weui-cell_input">
+        <view class="weui-cell__bd">
+          <view class="weui-label">借用人姓名</view>
+        </view>
+        <view class="weui-cell__ft">
+          <input class="weui-input" name="name" placeholder="请输入姓名"></input>
+        </view>
+      </view>
+
+      <view class="weui-cell weui-cell_input">
+        <view class="weui-cell__bd">
+          <view class="weui-label">联系电话</view>
+        </view>
+        <view class="weui-cell__ft">
+          <input class="weui-input" name="phone" placeholder="请输入11位手机号"></input>
+        </view>
+      </view>
+
+      <view class="weui-cell weui-cell_input">
+        <view class="weui-cell__bd">
+          <view class="weui-label">院系班级</view>
+        </view>
+        <view class="weui-cell__ft">
+          <input class="weui-input" name="class" placeholder="请输入院系班级"></input>
+        </view>
+      </view>
+
+      <view class="weui-cell weui-cell_input">
+        <view class="weui-cell__bd">
+          <view class="weui-label">学号</view>
+        </view>
+        <view class="weui-cell__ft">
+          <input class="weui-input" name="studentId" placeholder="请输入学号/工号"></input>
+        </view>
+      </view>
+    </view>
+    <!-- end 基本信息 -->
+
+    <view class="weui-cells__title">物资信息</view>
+    <view class="weui-cells weui-cells_after-title">
+      <view class="weui-cell weui-cell_input">
+        <view class="weui-cell__bd">
+          <view class="weui-label">物资名称</view>
+        </view>
+        <view class="weui-cell__ft">
+          <input class="weui-input" name="itemName" disabled="{{true}}" value="{{itemName}}"></input>
+        </view>
+      </view>
+
+      <view class="weui-cell weui-cell_input">
+        <view class="weui-cell__bd">
+          <view class="weui-label">物资编号</view>
+        </view>
+        <view class="weui-cell__ft">
+          <input class="weui-input" name="itemId" disabled="{{true}}" value="{{itemId}}"></input>
+        </view>
+      </view>
+
+      <view class="weui-cell weui-cell_input">
+        <view class="weui-cell__bd">
+          <view class="weui-label">借用数量</view>
+        </view>
+        <view class="weui-cell__ft">
+          <input class="weui-input" name="quantity" type="number" placeholder="剩余 {{quantity}}"></input>
+        </view>
+      </view>
+
+      <view class="weui-cell weui-cell_input" style="padding-right: 0;">
+        <view class="weui-cell__bd">
+          <view class="weui-label">借用日期</view>
+        </view>
+        <picker class="weui-input" mode="date" name="eventDate1" value="{{date1}}" start="2019-01-01" end="2099-12-31"
+          bindchange="bindDateChange1">
+          <view class="weui-select">{{date1}}</view>
+        </picker>
+      </view>
+
+      <view class="weui-cell weui-cell_input" style="padding-right: 0;">
+        <view class="weui-cell__bd">
+          <view class="weui-input">归还日期</view>
+        </view>
+        <picker class="weui-input" mode="date" name="eventDate2" value="{{date2}}" start="{{date1}}"
+          end="{{validEndDay}}" bindchange="bindDateChange2">
+          <view class="weui-select">{{date2}}</view>
+        </picker>
+      </view>
+    </view>
+    <!-- end 物资信息 -->
+
+    <view class="weui-cells__title">借用用途</view>
+    <view class="weui-cells weui-cells_after-title">
+      <view class="weui-cell weui-cell_form">
+        <view class="weui-cell__bd">
+          <textarea class="weui-textarea" name="description" maxlength="100" placeholder="请输入借用用途"></textarea>
+        </view>
+      </view>
+    </view>
+    <!-- end 借用用途 -->
+
+    <!-- form submit -->
+    <button class="weui-btn" type="primary" form-type="submit" disabled="{{!canSubmit}}">提交</button>
+  </form>
+</view>

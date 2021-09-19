@@ -1,42 +1,33 @@
+// pages/progressCheck/printForm.js
+const app = getApp();
 const db = wx.cloud.database();
 
 Page({
   data: {
-    examState: ["未审批", "撤回", "未通过", "通过"],
-    progressList: [],
+    examState: app.globalData.facExamStr,
     WIDTH: 375,
     HEIGHT: 550
   },
 
-  onLoad: function(options) {
-    const PAGE = this;
-    // console.log("options:" + options.type +' - ' + options.id);
-    db.collection("forms").where({
-      _id: options.id
-    }).get({
-      success(e) {
-        PAGE.setData({
-          progressList: e.data || []
-        });
-        PAGE.createNewImg(PAGE);
-      },
-      fail: console.error
+  onLoad(options) {
+    const that = this;
+    db.collection(app.globalData.dbFacFormCollection).doc(options.id).get().then(res => {
+      that.setData({
+        appr: res.data
+      });
+      that.createNewImg();
+    }).catch(err => {
+      console.error("[onLoad]", err);
     });
-
   },
 
+  createNewImg() {
+    var it = this.data.appr;
 
-  createNewImg: function(PAGE) {
-    var it = PAGE.data.progressList[0];
-    // console.log('item:',it);
     let ctx = wx.createCanvasContext('formVerify');
-    ctx.setFillStyle('white');
-    ctx.fillRect(0, 0, PAGE.data.WIDTH, PAGE.data.HEIGHT);
-    // ctx.draw();
-    // ctx.setStrokeStyle('black')
-    // ctx.moveTo(0, 0)
-    // ctx.lineTo(210, 0)
-    // ctx.stroke()
+    ctx.setFillStyle("white");
+    ctx.fillRect(0, 0, this.data.WIDTH, this.data.HEIGHT);
+
     ctx.setLineWidth = 20;
     ctx.setStrokeStyle = "blue";
     ctx.moveTo(15, 5);
@@ -47,24 +38,24 @@ Page({
     ctx.setTextAlign('start');
     // ctx.fillText("textAlign=start",30,20);
     let contentForPrint = {
-      "协会名称": it.event.association,
+      "申请单位": it.event.association,
       "活动名称": it.event.name,
       "参与人数": it.event.attendNumber,
       "活动日期": it.eventDate,
       "活动时间": it.eventTime1 + " 至 " + it.eventTime2,
-      "借用教室编号": it.classroomNumber,
+      "借用场地": it.classroomNumber,
       "活动内容": it.event.content,
       "活动负责人": it.event.responser,
       "联系电话": it.event.tel,
-      "审批状态": PAGE.data.examState[it.exam],
-      "社指审批人": it.check.approver,
-      "审批人意见": it.check.comment || ""
+      "审批状态": this.data.examState[it.exam],
+      "审批人": it.check.approver,
+      "审批意见": it.check.comment || ""
     };
     console.log("[draw]", contentForPrint);
     var yCoord = 25;
 
     for (var title in contentForPrint) {
-      console.log("> title", title);
+      console.log("[title]", title);
       ctx.fillText(title, 25, yCoord);
       var textWidth = ctx.measureText(contentForPrint[title]).width;
       var maxLength = 200;
@@ -79,7 +70,6 @@ Page({
         while (textWidth > maxLength) {
           var currentText = contentForPrint[title];
           ctx.fillText(currentText.substring(count * 10, (count + 1) * 10), 160, yCoord);
-
           count++;
           yCoord += 25;
           textWidth -= 200;
@@ -110,17 +100,16 @@ Page({
     }
 
     ctx.draw();
-
   },
 
-  savePic: function() {
+  savePic() {
     wx.canvasToTempFilePath({
       canvasId: 'formVerify',
-      success: function(res) {
+      success(res) {
         // console.log(res.tempFilePath)
         wx.saveImageToPhotosAlbum({
           filePath: res.tempFilePath,
-          success: (res) => {
+          success(res) {
             console.log('successfully saved:', res)
             wx.showModal({
               title: '保存成功',
@@ -129,10 +118,10 @@ Page({
               confirmText: '好',
             })
           },
-          fail: function(res) {
+          fail(res) {
             console.log(res)
             wx.getSetting({
-              success: function(res) {
+              success: function (res) {
                 console.log(res.authSetting)
                 if (("scope.writePhotosAlbum" in res.authSetting) && !res.authSetting['scope.writePhotosAlbum']) {
                   console.log("auth fail")
@@ -144,9 +133,7 @@ Page({
             })
           }
         })
-        // that.data.tmpPath = res.tempFilePath
-      },
+      }
     })
   }
-
 })

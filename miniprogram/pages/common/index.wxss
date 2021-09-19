@@ -1,15 +1,15 @@
 /* pages/commom/index.wxss */
 @import "../../assets/weui.wxss";
 
+/* page */
 .page {
   margin: 16px 0 42px 0;
 }
 
 /* userinfo */
-
 .userinfo {
   align-items: center;
-  background: #fff;
+  background-color: #fff;
   border: 1px solid rgba(0, 0, 0, 0.1);
   border-left: none;
   border-right: none;
@@ -24,7 +24,7 @@
 }
 
 .userinfo .userinfo-avatar {
-  background-color: white;
+  background-color: #fff;
   background-size: cover;
   border-radius: 75%;
   height: 100rpx;
@@ -53,8 +53,18 @@
 }
 
 /* weui-cell */
-
 .weui-cell__bd .cell-text {
   display: inline-block;
   vertical-align: middle;
+}
+
+/* weui-badge */
+.weui-badge.badge-blue {
+  background-color: #576b95;
+  margin-left: 5px;
+}
+
+.weui-badge.badge-red {
+  background-color: #e64340;
+  margin-left: 5px;
 }

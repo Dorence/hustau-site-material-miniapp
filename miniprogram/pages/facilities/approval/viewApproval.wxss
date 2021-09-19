@@ -1,0 +1,2 @@
+/* pages/facilities/approval/viewApproval.wxss */
+@import "../../common/progressView.wxss";
