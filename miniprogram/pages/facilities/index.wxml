@@ -79,6 +79,13 @@
         </view>
         <view class="weui-cell__ft weui-cell__ft_in-access"></view>
       </navigator>
+      <navigator wx-if="{{isSuper}}" class="weui-cell weui-cell_access" hover-class="weui-cell_active"
+        url="admin/materialManage">
+        <view class="weui-cell__bd">
+          <text class="cell-text">物资管理</text>
+        </view>
+        <view class="weui-cell__ft weui-cell__ft_in-access"></view>
+      </navigator>
     </view>
   </view>
 

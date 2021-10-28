@@ -2,26 +2,24 @@
   "pages": [
     "pages/facilities/index",
     "pages/materials/index",
-
     "pages/approval/exportApproval",
-
     "pages/facilities/admin/superAdmin",
     "pages/facilities/admin/userBind",
     "pages/facilities/approval/listApproval",
     "pages/facilities/approval/viewApproval",
     "pages/facilities/borrow/form",
     "pages/facilities/borrow/query",
-
     "pages/materials/additem/form",
     "pages/materials/approval/listApproval",
     "pages/materials/approval/viewApproval",
     "pages/materials/borrow/index",
     "pages/materials/borrow/form",
     "pages/materials/borrow/return",
-
     "pages/progressCheck/printForm",
     "pages/progressCheck/printForm_materials",
-    "pages/progressCheck/progressCheck"
+    "pages/progressCheck/progressCheck",
+    "pages/facilities/admin/MaterialManage.js",
+    "pages/facilities/admin/materialManage"
   ],
   "window": {
     "backgroundColor": "#f6f6f6",
@@ -34,7 +32,8 @@
     "borderStyle": "black",
     "color": "#7a7e83",
     "selectedColor": "#3cc51f",
-    "list": [{
+    "list": [
+      {
         "pagePath": "pages/facilities/index",
         "iconPath": "assets/hall.png",
         "selectedIconPath": "assets/hall-HL.png",

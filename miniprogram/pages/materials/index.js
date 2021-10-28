@@ -33,7 +33,7 @@ Page({
         name: "新增仓库物资",
         url: "additem/form",
         icon: "../../assets/plus.png"
-      }
+      },
     ]
   },
 
